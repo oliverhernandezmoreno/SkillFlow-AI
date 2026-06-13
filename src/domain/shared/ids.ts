@@ -1,0 +1,17 @@
+export type OrganizationId = string;
+export type UserId = string;
+export type RoleId = string;
+export type EmployeeId = string;
+export type CourseId = string;
+export type TrainingPlanId = string;
+export type TrainingPlanItemId = string;
+export type TrainingSessionId = string;
+export type EnrollmentId = string;
+export type AttendanceRecordId = string;
+export type EvaluationId = string;
+export type EvaluationResponseId = string;
+export type CertificateId = string;
+export type SenceDeclarationId = string;
+export type ProviderId = string;
+export type DocumentId = string;
+export type AuditEventId = string;

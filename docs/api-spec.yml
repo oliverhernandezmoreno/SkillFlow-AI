@@ -1,0 +1,2456 @@
+openapi: 3.1.0
+info:
+  title: SkillFlow AI API
+  version: 0.1.0
+  summary: API backend para Sistema de Gestión de Capacitaciones, OTEC, RRHH, cumplimiento y SENCE.
+  description: |
+    API REST para una plataforma SaaS multiempresa orientada a gestión de capacitaciones,
+    planes anuales de capacitación, cursos, relatores, inscripciones, asistencia, evaluación,
+    cumplimiento normativo, integración SENCE, reportería y módulos de inteligencia artificial.
+
+    Stack objetivo:
+    - Node.js
+    - TypeScript strict mode
+    - Express.js
+    - Prisma ORM
+    - PostgreSQL recomendado
+
+    Convenciones:
+    - Todas las fechas usan ISO 8601.
+    - Todos los IDs son UUID.
+    - La autenticación se realiza mediante JWT Bearer Token.
+    - El modelo es multi-tenant mediante organizationId.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: https://api.SkillFlow AI.cl/api/v1
+    description: Production
+
+tags:
+  - name: Auth
+    description: Autenticación, sesión y recuperación de contraseña.
+  - name: Organizations
+    description: Empresas, OTEC, clientes y configuración multi-tenant.
+  - name: Users
+    description: Usuarios internos, administradores, RRHH, relatores y participantes.
+  - name: Roles
+    description: Roles y permisos del sistema.
+  - name: Employees
+    description: Dotación, cargos, áreas, competencias y ficha de trabajador.
+  - name: Courses
+    description: Catálogo de cursos, competencias, modalidad y contenidos.
+  - name: TrainingPlans
+    description: Plan anual de capacitación PAC y planificación presupuestaria.
+  - name: TrainingSessions
+    description: Ejecución de cursos, clases, agenda, salas y relatores.
+  - name: Enrollments
+    description: Inscripciones, estados, cupos y trazabilidad.
+  - name: Attendance
+    description: Asistencia, firma digital, QR y evidencia.
+  - name: Evaluations
+    description: Evaluaciones, encuestas, resultados y aprobación.
+  - name: Certificates
+    description: Certificados, emisión, validación pública y trazabilidad.
+  - name: SENCE
+    description: Integración y control documental para procesos SENCE.
+  - name: Providers
+    description: OTEC externas, relatores, proveedores y contratos.
+  - name: Documents
+    description: Gestión documental, archivos y evidencias.
+  - name: Reports
+    description: Reportes ejecutivos, cumplimiento, costos y KPIs.
+  - name: AI
+    description: Copilot IA para recomendaciones, brechas y automatización.
+  - name: Audit
+    description: Auditoría, eventos y trazabilidad.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check de la API
+      security: []
+      responses:
+        '200':
+          description: Servicio disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registra una nueva organización y usuario administrador
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Organización y usuario creados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Inicia sesión con email y contraseña
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Obtiene el usuario autenticado
+      responses:
+        '200':
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Renueva el token de acceso
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token renovado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+
+  /organizations:
+    get:
+      tags: [Organizations]
+      summary: Lista organizaciones disponibles para el usuario
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Search'
+      responses:
+        '200':
+          description: Listado paginado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationListResponse'
+    post:
+      tags: [Organizations]
+      summary: Crea una organización cliente, OTEC o holding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganizationRequest'
+      responses:
+        '201':
+          description: Organización creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+
+  /organizations/{organizationId}:
+    get:
+      tags: [Organizations]
+      summary: Obtiene una organización por ID
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '200':
+          description: Organización encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+    patch:
+      tags: [Organizations]
+      summary: Actualiza datos de una organización
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationRequest'
+      responses:
+        '200':
+          description: Organización actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+    delete:
+      tags: [Organizations]
+      summary: Desactiva una organización
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      responses:
+        '204':
+          description: Organización desactivada
+
+  /users:
+    get:
+      tags: [Users]
+      summary: Lista usuarios de la organización
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Search'
+      responses:
+        '200':
+          description: Usuarios paginados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+    post:
+      tags: [Users]
+      summary: Crea un usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{userId}:
+    get:
+      tags: [Users]
+      summary: Obtiene un usuario por ID
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: Usuario encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    patch:
+      tags: [Users]
+      summary: Actualiza un usuario
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags: [Users]
+      summary: Desactiva un usuario
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: Usuario desactivado
+
+  /roles:
+    get:
+      tags: [Roles]
+      summary: Lista roles del sistema
+      responses:
+        '200':
+          description: Roles disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+
+  /employees:
+    get:
+      tags: [Employees]
+      summary: Lista trabajadores o participantes internos
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: areaId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: positionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trabajadores paginados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeListResponse'
+    post:
+      tags: [Employees]
+      summary: Crea ficha de trabajador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmployeeRequest'
+      responses:
+        '201':
+          description: Trabajador creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+
+  /employees/{employeeId}:
+    get:
+      tags: [Employees]
+      summary: Obtiene ficha de trabajador
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Trabajador encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+    patch:
+      tags: [Employees]
+      summary: Actualiza ficha de trabajador
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmployeeRequest'
+      responses:
+        '200':
+          description: Trabajador actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+
+  /courses:
+    get:
+      tags: [Courses]
+      summary: Lista catálogo de cursos
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Search'
+        - name: modality
+          in: query
+          schema:
+            $ref: '#/components/schemas/CourseModality'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/CourseStatus'
+      responses:
+        '200':
+          description: Cursos paginados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseListResponse'
+    post:
+      tags: [Courses]
+      summary: Crea un curso en el catálogo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourseRequest'
+      responses:
+        '201':
+          description: Curso creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+
+  /courses/{courseId}:
+    get:
+      tags: [Courses]
+      summary: Obtiene curso por ID
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200':
+          description: Curso encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+    patch:
+      tags: [Courses]
+      summary: Actualiza curso
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCourseRequest'
+      responses:
+        '200':
+          description: Curso actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+    delete:
+      tags: [Courses]
+      summary: Desactiva curso
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '204':
+          description: Curso desactivado
+
+  /training-plans:
+    get:
+      tags: [TrainingPlans]
+      summary: Lista planes anuales de capacitación
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: year
+          in: query
+          schema:
+            type: integer
+            example: 2026
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TrainingPlanStatus'
+      responses:
+        '200':
+          description: Planes encontrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlanListResponse'
+    post:
+      tags: [TrainingPlans]
+      summary: Crea plan anual de capacitación PAC
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrainingPlanRequest'
+      responses:
+        '201':
+          description: Plan creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+
+  /training-plans/{trainingPlanId}:
+    get:
+      tags: [TrainingPlans]
+      summary: Obtiene un plan anual
+      parameters:
+        - $ref: '#/components/parameters/TrainingPlanId'
+      responses:
+        '200':
+          description: Plan encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+    patch:
+      tags: [TrainingPlans]
+      summary: Actualiza plan anual
+      parameters:
+        - $ref: '#/components/parameters/TrainingPlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrainingPlanRequest'
+      responses:
+        '200':
+          description: Plan actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+
+  /training-plans/{trainingPlanId}/items:
+    post:
+      tags: [TrainingPlans]
+      summary: Agrega curso planificado al PAC
+      parameters:
+        - $ref: '#/components/parameters/TrainingPlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrainingPlanItemRequest'
+      responses:
+        '201':
+          description: Ítem agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlanItem'
+
+  /training-sessions:
+    get:
+      tags: [TrainingSessions]
+      summary: Lista ejecuciones o instancias de capacitación
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: courseId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TrainingSessionStatus'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Sesiones paginadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingSessionListResponse'
+    post:
+      tags: [TrainingSessions]
+      summary: Programa una instancia de capacitación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrainingSessionRequest'
+      responses:
+        '201':
+          description: Sesión creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingSession'
+
+  /training-sessions/{trainingSessionId}:
+    get:
+      tags: [TrainingSessions]
+      summary: Obtiene una instancia de capacitación
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      responses:
+        '200':
+          description: Sesión encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingSession'
+    patch:
+      tags: [TrainingSessions]
+      summary: Actualiza una instancia de capacitación
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrainingSessionRequest'
+      responses:
+        '200':
+          description: Sesión actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingSession'
+
+  /training-sessions/{trainingSessionId}/publish:
+    post:
+      tags: [TrainingSessions]
+      summary: Publica una capacitación y habilita inscripciones
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      responses:
+        '200':
+          description: Sesión publicada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingSession'
+
+  /enrollments:
+    get:
+      tags: [Enrollments]
+      summary: Lista inscripciones
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: trainingSessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: employeeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/EnrollmentStatus'
+      responses:
+        '200':
+          description: Inscripciones paginadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentListResponse'
+    post:
+      tags: [Enrollments]
+      summary: Inscribe trabajador a una capacitación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEnrollmentRequest'
+      responses:
+        '201':
+          description: Inscripción creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+
+  /enrollments/{enrollmentId}:
+    patch:
+      tags: [Enrollments]
+      summary: Actualiza estado de inscripción
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEnrollmentRequest'
+      responses:
+        '200':
+          description: Inscripción actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+
+  /attendance/check-in:
+    post:
+      tags: [Attendance]
+      summary: Registra asistencia de entrada mediante QR, firma o registro manual
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceCheckInRequest'
+      responses:
+        '201':
+          description: Asistencia registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+
+  /attendance/check-out:
+    post:
+      tags: [Attendance]
+      summary: Registra salida de participante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceCheckOutRequest'
+      responses:
+        '200':
+          description: Salida registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceRecord'
+
+  /attendance/sessions/{trainingSessionId}:
+    get:
+      tags: [Attendance]
+      summary: Obtiene asistencia de una capacitación
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      responses:
+        '200':
+          description: Asistencia por sesión
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttendanceRecord'
+
+  /evaluations:
+    post:
+      tags: [Evaluations]
+      summary: Crea evaluación asociada a una capacitación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEvaluationRequest'
+      responses:
+        '201':
+          description: Evaluación creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+
+  /evaluations/{evaluationId}/responses:
+    post:
+      tags: [Evaluations]
+      summary: Registra respuesta de evaluación de un participante
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEvaluationResponseRequest'
+      responses:
+        '201':
+          description: Respuesta registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResponse'
+
+  /certificates:
+    get:
+      tags: [Certificates]
+      summary: Lista certificados emitidos
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: employeeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: courseId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Certificados encontrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateListResponse'
+
+  /certificates/issue:
+    post:
+      tags: [Certificates]
+      summary: Emite certificado para inscripción aprobada
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enrollmentId]
+              properties:
+                enrollmentId:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Certificado emitido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certificate'
+
+  /certificates/verify/{verificationCode}:
+    get:
+      tags: [Certificates]
+      summary: Verifica públicamente la validez de un certificado
+      security: []
+      parameters:
+        - name: verificationCode
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Certificado válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateVerification'
+
+  /sence/declarations:
+    get:
+      tags: [SENCE]
+      summary: Lista declaraciones SENCE
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SenceDeclarationStatus'
+      responses:
+        '200':
+          description: Declaraciones encontradas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclarationListResponse'
+    post:
+      tags: [SENCE]
+      summary: Crea declaración SENCE para una capacitación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSenceDeclarationRequest'
+      responses:
+        '201':
+          description: Declaración creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclaration'
+
+  /sence/declarations/{senceDeclarationId}/submit:
+    post:
+      tags: [SENCE]
+      summary: Marca declaración SENCE como enviada o preparada para integración externa
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      responses:
+        '200':
+          description: Declaración enviada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclaration'
+
+  /providers:
+    get:
+      tags: [Providers]
+      summary: Lista proveedores, OTEC externas o relatores
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProviderType'
+      responses:
+        '200':
+          description: Proveedores encontrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderListResponse'
+    post:
+      tags: [Providers]
+      summary: Crea proveedor o relator externo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProviderRequest'
+      responses:
+        '201':
+          description: Proveedor creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Provider'
+
+  /documents:
+    post:
+      tags: [Documents]
+      summary: Registra metadata de documento o evidencia
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocumentRequest'
+      responses:
+        '201':
+          description: Documento registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+
+  /reports/dashboard:
+    get:
+      tags: [Reports]
+      summary: Dashboard ejecutivo de capacitación
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: year
+          in: query
+          schema:
+            type: integer
+            example: 2026
+      responses:
+        '200':
+          description: KPIs ejecutivos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardReport'
+
+  /reports/training-compliance:
+    get:
+      tags: [Reports]
+      summary: Reporte de cumplimiento de capacitación
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Cumplimiento por área, cargo y curso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingComplianceReport'
+
+  /ai/recommendations/training-gaps:
+    post:
+      tags: [AI]
+      summary: Recomienda brechas de capacitación según cargo, competencias e historial
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrainingGapRecommendationRequest'
+      responses:
+        '200':
+          description: Recomendaciones generadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingGapRecommendationResponse'
+
+  /audit/events:
+    get:
+      tags: [Audit]
+      summary: Lista eventos de auditoría
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: entityType
+          in: query
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Eventos de auditoría
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEventListResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
+        maxLength: 120
+    OrganizationId:
+      name: organizationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    OrganizationIdQuery:
+      name: organizationId
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EmployeeId:
+      name: employeeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CourseId:
+      name: courseId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TrainingPlanId:
+      name: trainingPlanId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TrainingSessionId:
+      name: trainingSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EnrollmentId:
+      name: enrollmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EvaluationId:
+      name: evaluationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SenceDeclarationId:
+      name: senceDeclarationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Solicitud inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: No autenticado o token inválido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Sin permisos para ejecutar la acción
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflicto con recurso existente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, timestamp]
+      properties:
+        status:
+          type: string
+          example: ok
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Request validation failed
+            details:
+              type: array
+              items:
+                type: object
+
+    PaginationMeta:
+      type: object
+      required: [page, pageSize, total, totalPages]
+      properties:
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+    RegisterRequest:
+      type: object
+      required: [organizationName, taxId, firstName, lastName, email, password]
+      properties:
+        organizationName:
+          type: string
+          example: ACME Capacitación SpA
+        taxId:
+          type: string
+          example: 76.123.456-7
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    AuthResponse:
+      type: object
+      required: [accessToken, refreshToken, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    TokenResponse:
+      type: object
+      required: [accessToken, refreshToken]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    OrganizationType:
+      type: string
+      enum: [CLIENT_COMPANY, OTEC, HOLDING, INTERNAL]
+    OrganizationStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, SUSPENDED]
+
+    Organization:
+      type: object
+      required: [id, name, taxId, type, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        taxId:
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationType'
+        status:
+          $ref: '#/components/schemas/OrganizationStatus'
+        legalName:
+          type: string
+        industry:
+          type: string
+        country:
+          type: string
+          example: CL
+        settings:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateOrganizationRequest:
+      type: object
+      required: [name, taxId, type]
+      properties:
+        name:
+          type: string
+        taxId:
+          type: string
+        type:
+          $ref: '#/components/schemas/OrganizationType'
+        legalName:
+          type: string
+        industry:
+          type: string
+        country:
+          type: string
+          default: CL
+
+    UpdateOrganizationRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateOrganizationRequest'
+
+    OrganizationListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    UserStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, INVITED, LOCKED]
+    User:
+      type: object
+      required: [id, organizationId, email, firstName, lastName, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required: [organizationId, email, firstName, lastName, roleIds]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        roleIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        roleIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UserListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    Role:
+      type: object
+      required: [id, code, name, permissions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: HR_ADMIN
+        name:
+          type: string
+          example: Administrador RRHH
+        permissions:
+          type: array
+          items:
+            type: string
+
+    EmployeeStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, TERMINATED]
+    Employee:
+      type: object
+      required: [id, organizationId, documentNumber, firstName, lastName, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        documentNumber:
+          type: string
+          example: 12.345.678-9
+        employeeCode:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        areaId:
+          type: string
+          format: uuid
+        areaName:
+          type: string
+        positionId:
+          type: string
+          format: uuid
+        positionName:
+          type: string
+        status:
+          $ref: '#/components/schemas/EmployeeStatus'
+        hiredAt:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateEmployeeRequest:
+      type: object
+      required: [organizationId, documentNumber, firstName, lastName]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        documentNumber:
+          type: string
+        employeeCode:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        areaId:
+          type: string
+          format: uuid
+        positionId:
+          type: string
+          format: uuid
+        hiredAt:
+          type: string
+          format: date
+
+    UpdateEmployeeRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateEmployeeRequest'
+
+    EmployeeListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    CourseModality:
+      type: string
+      enum: [ONLINE, PRESENTIAL, BLENDED, ASYNC]
+    CourseStatus:
+      type: string
+      enum: [DRAFT, ACTIVE, INACTIVE, ARCHIVED]
+    Course:
+      type: object
+      required: [id, organizationId, code, name, modality, durationHours, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        code:
+          type: string
+          example: SEG-001
+        name:
+          type: string
+          example: Inducción de Seguridad
+        description:
+          type: string
+        modality:
+          $ref: '#/components/schemas/CourseModality'
+        durationHours:
+          type: number
+          format: float
+        validityMonths:
+          type: integer
+          description: Vigencia de certificación en meses.
+        status:
+          $ref: '#/components/schemas/CourseStatus'
+        competencyIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        senceCode:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateCourseRequest:
+      type: object
+      required: [organizationId, code, name, modality, durationHours]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        modality:
+          $ref: '#/components/schemas/CourseModality'
+        durationHours:
+          type: number
+          format: float
+        validityMonths:
+          type: integer
+        competencyIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        senceCode:
+          type: string
+
+    UpdateCourseRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateCourseRequest'
+
+    CourseListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    TrainingPlanStatus:
+      type: string
+      enum: [DRAFT, SUBMITTED, APPROVED, REJECTED, CLOSED]
+    TrainingPlan:
+      type: object
+      required: [id, organizationId, name, year, status, budgetAmount]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: PAC 2026
+        year:
+          type: integer
+        status:
+          $ref: '#/components/schemas/TrainingPlanStatus'
+        budgetAmount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          example: CLP
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingPlanItem'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTrainingPlanRequest:
+      type: object
+      required: [organizationId, name, year, budgetAmount]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        year:
+          type: integer
+        budgetAmount:
+          type: number
+        currency:
+          type: string
+          default: CLP
+
+    UpdateTrainingPlanRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/TrainingPlanStatus'
+        budgetAmount:
+          type: number
+        currency:
+          type: string
+
+    TrainingPlanItem:
+      type: object
+      required: [id, trainingPlanId, courseId, plannedMonth, estimatedParticipants, estimatedCost]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trainingPlanId:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        plannedMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+        estimatedParticipants:
+          type: integer
+        estimatedCost:
+          type: number
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        businessJustification:
+          type: string
+
+    CreateTrainingPlanItemRequest:
+      type: object
+      required: [courseId, plannedMonth, estimatedParticipants, estimatedCost]
+      properties:
+        courseId:
+          type: string
+          format: uuid
+        plannedMonth:
+          type: integer
+          minimum: 1
+          maximum: 12
+        estimatedParticipants:
+          type: integer
+        estimatedCost:
+          type: number
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        businessJustification:
+          type: string
+
+    TrainingPlanListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingPlan'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    TrainingSessionStatus:
+      type: string
+      enum: [DRAFT, PUBLISHED, IN_PROGRESS, COMPLETED, CANCELLED]
+    TrainingSession:
+      type: object
+      required: [id, organizationId, courseId, name, startDate, endDate, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        trainingPlanItemId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        providerId:
+          type: string
+          format: uuid
+        instructorId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        capacity:
+          type: integer
+        costAmount:
+          type: number
+        status:
+          $ref: '#/components/schemas/TrainingSessionStatus'
+        meetingUrl:
+          type: string
+          format: uri
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTrainingSessionRequest:
+      type: object
+      required: [organizationId, courseId, name, startDate, endDate]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        trainingPlanItemId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        providerId:
+          type: string
+          format: uuid
+        instructorId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        capacity:
+          type: integer
+        costAmount:
+          type: number
+        meetingUrl:
+          type: string
+          format: uri
+
+    UpdateTrainingSessionRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateTrainingSessionRequest'
+      properties:
+        status:
+          $ref: '#/components/schemas/TrainingSessionStatus'
+
+    TrainingSessionListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrainingSession'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    EnrollmentStatus:
+      type: string
+      enum: [PENDING, CONFIRMED, WAITLISTED, CANCELLED, COMPLETED, FAILED]
+    Enrollment:
+      type: object
+      required: [id, organizationId, trainingSessionId, employeeId, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/EnrollmentStatus'
+        enrolledAt:
+          type: string
+          format: date-time
+        completionPercentage:
+          type: number
+        finalScore:
+          type: number
+        approved:
+          type: boolean
+
+    CreateEnrollmentRequest:
+      type: object
+      required: [organizationId, trainingSessionId, employeeId]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+
+    UpdateEnrollmentRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/EnrollmentStatus'
+        finalScore:
+          type: number
+        approved:
+          type: boolean
+
+    EnrollmentListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Enrollment'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    AttendanceMethod:
+      type: string
+      enum: [QR, DIGITAL_SIGNATURE, MANUAL, BIOMETRIC]
+    AttendanceRecord:
+      type: object
+      required: [id, enrollmentId, trainingSessionId, employeeId, method, checkInAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        method:
+          $ref: '#/components/schemas/AttendanceMethod'
+        checkInAt:
+          type: string
+          format: date-time
+        checkOutAt:
+          type: string
+          format: date-time
+        evidenceDocumentId:
+          type: string
+          format: uuid
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    AttendanceCheckInRequest:
+      type: object
+      required: [enrollmentId, method]
+      properties:
+        enrollmentId:
+          type: string
+          format: uuid
+        method:
+          $ref: '#/components/schemas/AttendanceMethod'
+        qrToken:
+          type: string
+        signatureBase64:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    AttendanceCheckOutRequest:
+      type: object
+      required: [attendanceRecordId]
+      properties:
+        attendanceRecordId:
+          type: string
+          format: uuid
+
+    EvaluationType:
+      type: string
+      enum: [KNOWLEDGE_TEST, SATISFACTION_SURVEY, PRACTICAL_ASSESSMENT]
+    Evaluation:
+      type: object
+      required: [id, trainingSessionId, type, title]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/EvaluationType'
+        title:
+          type: string
+        passingScore:
+          type: number
+        questions:
+          type: array
+          items:
+            type: object
+
+    CreateEvaluationRequest:
+      type: object
+      required: [trainingSessionId, type, title, questions]
+      properties:
+        trainingSessionId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/EvaluationType'
+        title:
+          type: string
+        passingScore:
+          type: number
+        questions:
+          type: array
+          items:
+            type: object
+
+    EvaluationResponse:
+      type: object
+      required: [id, evaluationId, employeeId, submittedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        evaluationId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        score:
+          type: number
+        passed:
+          type: boolean
+        answers:
+          type: array
+          items:
+            type: object
+        submittedAt:
+          type: string
+          format: date-time
+
+    CreateEvaluationResponseRequest:
+      type: object
+      required: [employeeId, answers]
+      properties:
+        employeeId:
+          type: string
+          format: uuid
+        answers:
+          type: array
+          items:
+            type: object
+
+    Certificate:
+      type: object
+      required: [id, enrollmentId, verificationCode, issuedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        verificationCode:
+          type: string
+        fileUrl:
+          type: string
+          format: uri
+        issuedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date
+
+    CertificateVerification:
+      type: object
+      required: [valid, certificate]
+      properties:
+        valid:
+          type: boolean
+        certificate:
+          $ref: '#/components/schemas/Certificate'
+
+    CertificateListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Certificate'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    SenceDeclarationStatus:
+      type: string
+      enum: [DRAFT, READY, SUBMITTED, ACCEPTED, REJECTED, OBSERVED]
+    SenceDeclaration:
+      type: object
+      required: [id, organizationId, trainingSessionId, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        senceCode:
+          type: string
+        status:
+          $ref: '#/components/schemas/SenceDeclarationStatus'
+        declaredAmount:
+          type: number
+        taxCreditAmount:
+          type: number
+        submittedAt:
+          type: string
+          format: date-time
+        responsePayload:
+          type: object
+
+    CreateSenceDeclarationRequest:
+      type: object
+      required: [organizationId, trainingSessionId]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        senceCode:
+          type: string
+        declaredAmount:
+          type: number
+        taxCreditAmount:
+          type: number
+
+    SenceDeclarationListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SenceDeclaration'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    ProviderType:
+      type: string
+      enum: [OTEC, INSTRUCTOR, CONSULTANT, PLATFORM]
+    Provider:
+      type: object
+      required: [id, organizationId, type, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/ProviderType'
+        name:
+          type: string
+        taxId:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        specialties:
+          type: array
+          items:
+            type: string
+
+    CreateProviderRequest:
+      type: object
+      required: [organizationId, type, name]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/ProviderType'
+        name:
+          type: string
+        taxId:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        specialties:
+          type: array
+          items:
+            type: string
+
+    ProviderListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Provider'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    DocumentType:
+      type: string
+      enum: [CONTRACT, ATTENDANCE_SHEET, CERTIFICATE, EVALUATION, SENCE_FILE, INVOICE, OTHER]
+    Document:
+      type: object
+      required: [id, organizationId, type, fileName, fileUrl]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          format: uri
+        mimeType:
+          type: string
+        sizeBytes:
+          type: integer
+        uploadedByUserId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateDocumentRequest:
+      type: object
+      required: [organizationId, type, fileName, fileUrl]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/DocumentType'
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          format: uri
+        mimeType:
+          type: string
+        sizeBytes:
+          type: integer
+
+    DashboardReport:
+      type: object
+      required: [totalEmployees, trainedEmployees, complianceRate, totalInvestment]
+      properties:
+        totalEmployees:
+          type: integer
+        trainedEmployees:
+          type: integer
+        complianceRate:
+          type: number
+        totalTrainingHours:
+          type: number
+        totalInvestment:
+          type: number
+        senceTaxCredit:
+          type: number
+        activeCourses:
+          type: integer
+        upcomingSessions:
+          type: integer
+
+    TrainingComplianceReport:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        period:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date
+            to:
+              type: string
+              format: date
+        byArea:
+          type: array
+          items:
+            type: object
+            properties:
+              areaId:
+                type: string
+                format: uuid
+              areaName:
+                type: string
+              complianceRate:
+                type: number
+              pendingTrainings:
+                type: integer
+
+    TrainingGapRecommendationRequest:
+      type: object
+      required: [organizationId]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        areaId:
+          type: string
+          format: uuid
+        positionId:
+          type: string
+          format: uuid
+        objective:
+          type: string
+          example: Reducir brechas obligatorias de seguridad operacional.
+
+    TrainingGapRecommendationResponse:
+      type: object
+      required: [recommendations]
+      properties:
+        recommendations:
+          type: array
+          items:
+            type: object
+            properties:
+              employeeId:
+                type: string
+                format: uuid
+              courseId:
+                type: string
+                format: uuid
+              priority:
+                type: string
+                enum: [LOW, MEDIUM, HIGH, CRITICAL]
+              reason:
+                type: string
+              expectedImpact:
+                type: string
+
+    AuditEvent:
+      type: object
+      required: [id, organizationId, actorUserId, action, entityType, entityId, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        actorUserId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          example: COURSE_CREATED
+        entityType:
+          type: string
+          example: Course
+        entityId:
+          type: string
+          format: uuid
+        before:
+          type: object
+        after:
+          type: object
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    AuditEventListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEvent'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'

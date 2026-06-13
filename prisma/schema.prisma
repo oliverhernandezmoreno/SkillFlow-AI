@@ -1,0 +1,1154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationType {
+  CLIENT
+  CLIENT_COMPANY
+  OTEC
+  PROVIDER
+  HOLDING
+  INTERNAL
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  INVITED
+  LOCKED
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+  TERMINATED
+}
+
+enum ProviderType {
+  OTEC
+  INSTRUCTOR
+  CONSULTANT
+  PLATFORM
+  OTHER
+}
+
+enum ProviderStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum CourseStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum CourseModality {
+  ONLINE
+  PRESENTIAL
+  HYBRID
+  BLENDED
+  ASYNC
+}
+
+enum TrainingPlanStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CLOSED
+}
+
+enum TrainingSessionStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  CLOSED
+}
+
+enum EnrollmentStatus {
+  PENDING
+  CONFIRMED
+  WAITLISTED
+  ENROLLED
+  CANCELLED
+  COMPLETED
+  FAILED
+}
+
+enum AttendanceMethod {
+  QR
+  DIGITAL_SIGNATURE
+  MANUAL
+  BIOMETRIC
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+  INCOMPLETE
+}
+
+enum EvaluationType {
+  KNOWLEDGE
+  KNOWLEDGE_TEST
+  SATISFACTION
+  SATISFACTION_SURVEY
+  PRACTICAL
+  PRACTICAL_ASSESSMENT
+  DIAGNOSTIC
+}
+
+enum EvaluationQuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  TEXT
+  NUMERIC
+  SCALE
+  BOOLEAN
+}
+
+enum CertificateStatus {
+  DRAFT
+  ISSUED
+  REVOKED
+  EXPIRED
+}
+
+enum SenceDeclarationStatus {
+  DRAFT
+  READY
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+  OBSERVED
+}
+
+enum DocumentType {
+  ATTENDANCE_EVIDENCE
+  ATTENDANCE_SHEET
+  CERTIFICATE
+  CONTRACT
+  COURSE_MATERIAL
+  EVALUATION
+  SENCE_EVIDENCE
+  SENCE_FILE
+  INVOICE
+  OTHER
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  READ
+  FAILED
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ReportSnapshotType {
+  DASHBOARD
+  TRAINING_COMPLIANCE
+  SENCE
+  COSTS
+  AUDIT
+}
+
+model Organization {
+  id        String             @id @default(uuid()) @db.Uuid
+  legalName String             @map("legal_name")
+  tradeName String?            @map("trade_name")
+  taxId     String             @unique @map("tax_id")
+  email     String
+  type      OrganizationType
+  status    OrganizationStatus @default(ACTIVE)
+  industry  String?
+  country   String             @default("CL")
+  settings  Json?
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+  deletedAt DateTime?          @map("deleted_at")
+  version   Int                @default(1)
+
+  users               User[]
+  roles               Role[]
+  userRoles           UserRole[]
+  rolePermissions     RolePermission[]
+  employees           Employee[]
+  providers           Provider[]
+  instructors         Instructor[]
+  courses             Course[]
+  courseModules       CourseModule[]
+  competencies        Competency[]
+  courseCompetencies  CourseCompetency[]
+  trainingPlans       TrainingPlan[]
+  trainingPlanItems   TrainingPlanItem[]
+  trainingSessions    TrainingSession[]
+  enrollments         Enrollment[]
+  attendanceRecords   AttendanceRecord[]
+  evaluations         Evaluation[]
+  evaluationQuestions EvaluationQuestion[]
+  evaluationResponses EvaluationResponse[]
+  evaluationAnswers   EvaluationAnswer[]
+  certificates        Certificate[]
+  senceDeclarations   SenceDeclaration[]
+  senceDocuments      SenceDocument[]
+  documents           Document[]
+  notifications       Notification[]
+  reportSnapshots     ReportSnapshot[]
+  auditEvents         AuditEvent[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([taxId])
+  @@map("organizations")
+}
+
+model User {
+  id              String     @id @default(uuid()) @db.Uuid
+  organizationId  String     @map("organization_id") @db.Uuid
+  firstName       String     @map("first_name")
+  lastName        String     @map("last_name")
+  email           String
+  normalizedEmail String     @map("normalized_email")
+  phone           String?
+  passwordHash    String     @map("password_hash")
+  status          UserStatus @default(ACTIVE)
+  lastLoginAt     DateTime?  @map("last_login_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  deletedAt       DateTime?  @map("deleted_at")
+  version         Int        @default(1)
+
+  organization      Organization     @relation(fields: [organizationId], references: [id])
+  userRoles         UserRole[]
+  instructorProfile Instructor?
+  uploadedDocuments Document[]       @relation("UploadedDocuments")
+  notifications     Notification[]   @relation("UserNotifications")
+  reportSnapshots   ReportSnapshot[] @relation("ReportSnapshotCreatedBy")
+  auditEvents       AuditEvent[]     @relation("AuditEventActor")
+
+  /// MVP keeps strict uniqueness even across soft-deleted rows.
+  /// Production may require a PostgreSQL partial unique index:
+  /// WHERE deleted_at IS NULL.
+  @@unique([organizationId, normalizedEmail])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([email])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("users")
+}
+
+model Role {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  code           String
+  name           String
+  description    String?
+  isSystem       Boolean   @default(false) @map("is_system")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@unique([organizationId, code])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([code])
+  @@map("roles")
+}
+
+model Permission {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        String    @unique
+  name        String
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  version     Int       @default(1)
+
+  rolePermissions RolePermission[]
+
+  @@unique([id])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([code])
+  @@map("permissions")
+}
+
+model UserRole {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  roleId         String    @map("role_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User         @relation(fields: [userId, organizationId], references: [id, organizationId])
+  role         Role         @relation(fields: [roleId, organizationId], references: [id, organizationId])
+
+  @@unique([userId, roleId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  roleId         String    @map("role_id") @db.Uuid
+  permissionId   String    @map("permission_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  role         Role         @relation(fields: [roleId, organizationId], references: [id, organizationId])
+  permission   Permission   @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("role_permissions")
+}
+
+model Employee {
+  id              String         @id @default(uuid()) @db.Uuid
+  organizationId  String         @map("organization_id") @db.Uuid
+  rut             String
+  employeeCode    String?        @map("employee_code")
+  firstName       String         @map("first_name")
+  lastName        String         @map("last_name")
+  email           String?
+  normalizedEmail String?        @map("normalized_email")
+  phone           String?
+  department      String?
+  areaId          String?        @map("area_id") @db.Uuid
+  areaName        String?        @map("area_name")
+  position        String?
+  positionId      String?        @map("position_id") @db.Uuid
+  positionName    String?        @map("position_name")
+  status          EmployeeStatus @default(ACTIVE)
+  hiredAt         DateTime?      @map("hired_at") @db.Date
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+  version         Int            @default(1)
+
+  organization        Organization         @relation(fields: [organizationId], references: [id])
+  enrollments         Enrollment[]
+  attendanceRecords   AttendanceRecord[]
+  evaluationResponses EvaluationResponse[]
+  evaluationAnswers   EvaluationAnswer[]
+  certificates        Certificate[]
+
+  /// MVP keeps strict uniqueness even across soft-deleted rows.
+  /// Production may require a PostgreSQL partial unique index:
+  /// WHERE deleted_at IS NULL.
+  @@unique([organizationId, rut])
+  @@unique([organizationId, normalizedEmail])
+  @@unique([organizationId, employeeCode])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([lastName, firstName])
+  @@index([areaId])
+  @@index([positionId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("employees")
+}
+
+model Provider {
+  id              String         @id @default(uuid()) @db.Uuid
+  organizationId  String         @map("organization_id") @db.Uuid
+  type            ProviderType
+  legalName       String         @map("legal_name")
+  tradeName       String?        @map("trade_name")
+  taxId           String?        @map("tax_id")
+  email           String?
+  normalizedEmail String?        @map("normalized_email")
+  phone           String?
+  specialties     String[]       @default([])
+  status          ProviderStatus @default(ACTIVE)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+  version         Int            @default(1)
+
+  organization Organization      @relation(fields: [organizationId], references: [id])
+  instructors  Instructor[]
+  sessions     TrainingSession[]
+
+  @@unique([organizationId, taxId])
+  @@unique([organizationId, normalizedEmail])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([legalName])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("providers")
+}
+
+model Instructor {
+  id              String         @id @default(uuid()) @db.Uuid
+  organizationId  String         @map("organization_id") @db.Uuid
+  userId          String?        @unique @map("user_id") @db.Uuid
+  providerId      String?        @map("provider_id") @db.Uuid
+  rut             String?        @map("rut")
+  firstName       String         @map("first_name")
+  lastName        String         @map("last_name")
+  email           String?
+  normalizedEmail String?        @map("normalized_email")
+  phone           String?
+  specialties     String[]       @default([])
+  status          ProviderStatus @default(ACTIVE)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+  version         Int            @default(1)
+
+  organization Organization      @relation(fields: [organizationId], references: [id])
+  user         User?             @relation(fields: [userId, organizationId], references: [id, organizationId])
+  provider     Provider?         @relation(fields: [providerId, organizationId], references: [id, organizationId])
+  sessions     TrainingSession[]
+
+  /// MVP keeps strict uniqueness even across soft-deleted rows.
+  /// Production may require a PostgreSQL partial unique index:
+  /// WHERE deleted_at IS NULL.
+  @@unique([userId, organizationId])
+  @@unique([organizationId, rut])
+  @@unique([organizationId, normalizedEmail])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([providerId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([lastName, firstName])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("instructors")
+}
+
+model Course {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @map("organization_id") @db.Uuid
+  code           String
+  name           String
+  description    String?
+  modality       CourseModality
+  durationHours  Decimal        @map("duration_hours") @db.Decimal(8, 2)
+  validityMonths Int?           @map("validity_months")
+  senceCode      String?        @map("sence_code")
+  status         CourseStatus   @default(DRAFT)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  deletedAt      DateTime?      @map("deleted_at")
+  version        Int            @default(1)
+
+  organization       Organization       @relation(fields: [organizationId], references: [id])
+  modules            CourseModule[]
+  courseCompetencies CourseCompetency[]
+  planItems          TrainingPlanItem[]
+  sessions           TrainingSession[]
+  certificates       Certificate[]
+
+  /// MVP keeps strict uniqueness even across soft-deleted rows.
+  /// Production may require a PostgreSQL partial unique index:
+  /// WHERE deleted_at IS NULL.
+  @@unique([organizationId, code])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([modality])
+  @@index([name])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("courses")
+}
+
+model CourseModule {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  courseId       String    @map("course_id") @db.Uuid
+  title          String
+  description    String?
+  orderIndex     Int       @map("order_index")
+  durationHours  Decimal?  @map("duration_hours") @db.Decimal(8, 2)
+  contentUrl     String?   @map("content_url")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  course       Course       @relation(fields: [courseId, organizationId], references: [id, organizationId])
+
+  @@unique([courseId, orderIndex])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([courseId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("course_modules")
+}
+
+model Competency {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  code           String
+  name           String
+  description    String?
+  category       String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization       Organization       @relation(fields: [organizationId], references: [id])
+  courseCompetencies CourseCompetency[]
+
+  @@unique([organizationId, code])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([name])
+  @@map("competencies")
+}
+
+model CourseCompetency {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  courseId       String    @map("course_id") @db.Uuid
+  competencyId   String    @map("competency_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  course       Course       @relation(fields: [courseId, organizationId], references: [id, organizationId])
+  competency   Competency   @relation(fields: [competencyId, organizationId], references: [id, organizationId])
+
+  @@unique([courseId, competencyId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([courseId])
+  @@index([competencyId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("course_competencies")
+}
+
+model TrainingPlan {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @map("organization_id") @db.Uuid
+  year           Int
+  name           String
+  budgetAmount   Decimal            @map("budget_amount") @db.Decimal(14, 2)
+  currency       String             @default("CLP")
+  status         TrainingPlanStatus @default(DRAFT)
+  submittedAt    DateTime?          @map("submitted_at")
+  approvedAt     DateTime?          @map("approved_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  deletedAt      DateTime?          @map("deleted_at")
+  version        Int                @default(1)
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  items        TrainingPlanItem[]
+
+  @@unique([organizationId, year])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([year])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("training_plans")
+}
+
+model TrainingPlanItem {
+  id                    String    @id @default(uuid()) @db.Uuid
+  organizationId        String    @map("organization_id") @db.Uuid
+  trainingPlanId        String    @map("training_plan_id") @db.Uuid
+  courseId              String    @map("course_id") @db.Uuid
+  plannedMonth          Int?      @map("planned_month")
+  quarter               Int?
+  estimatedParticipants Int       @map("estimated_participants")
+  estimatedCost         Decimal   @map("estimated_cost") @db.Decimal(14, 2)
+  priority              Priority  @default(MEDIUM)
+  businessJustification String?   @map("business_justification")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at")
+  version               Int       @default(1)
+
+  organization Organization      @relation(fields: [organizationId], references: [id])
+  trainingPlan TrainingPlan      @relation(fields: [trainingPlanId, organizationId], references: [id, organizationId])
+  course       Course            @relation(fields: [courseId, organizationId], references: [id, organizationId])
+  sessions     TrainingSession[]
+
+  @@unique([trainingPlanId, courseId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([trainingPlanId])
+  @@index([courseId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("training_plan_items")
+}
+
+model TrainingSession {
+  id                 String                @id @default(uuid()) @db.Uuid
+  organizationId     String                @map("organization_id") @db.Uuid
+  courseId           String                @map("course_id") @db.Uuid
+  trainingPlanItemId String?               @map("training_plan_item_id") @db.Uuid
+  providerId         String?               @map("provider_id") @db.Uuid
+  instructorId       String?               @map("instructor_id") @db.Uuid
+  name               String
+  startDate          DateTime              @map("start_date")
+  endDate            DateTime              @map("end_date")
+  location           String?
+  capacity           Int                   @default(0)
+  costAmount         Decimal?              @map("cost_amount") @db.Decimal(14, 2)
+  meetingUrl         String?               @map("meeting_url")
+  status             TrainingSessionStatus @default(DRAFT)
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+  deletedAt          DateTime?             @map("deleted_at")
+  version            Int                   @default(1)
+
+  organization      Organization       @relation(fields: [organizationId], references: [id])
+  course            Course             @relation(fields: [courseId, organizationId], references: [id, organizationId])
+  trainingPlanItem  TrainingPlanItem?  @relation(fields: [trainingPlanItemId, organizationId], references: [id, organizationId])
+  provider          Provider?          @relation(fields: [providerId, organizationId], references: [id, organizationId])
+  instructor        Instructor?        @relation(fields: [instructorId, organizationId], references: [id, organizationId])
+  enrollments       Enrollment[]
+  attendanceRecords AttendanceRecord[]
+  evaluations       Evaluation[]
+  certificates      Certificate[]
+  senceDeclarations SenceDeclaration[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([courseId])
+  @@index([trainingPlanItemId])
+  @@index([providerId])
+  @@index([instructorId])
+  @@index([startDate])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("training_sessions")
+}
+
+model Enrollment {
+  id                   String           @id @default(uuid()) @db.Uuid
+  organizationId       String           @map("organization_id") @db.Uuid
+  trainingSessionId    String           @map("training_session_id") @db.Uuid
+  employeeId           String           @map("employee_id") @db.Uuid
+  status               EnrollmentStatus @default(PENDING)
+  enrolledAt           DateTime         @default(now()) @map("enrolled_at")
+  completionPercentage Decimal?         @map("completion_percentage") @db.Decimal(5, 2)
+  finalScore           Decimal?         @map("final_score") @db.Decimal(5, 2)
+  approved             Boolean?
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+  deletedAt            DateTime?        @map("deleted_at")
+  version              Int              @default(1)
+
+  organization        Organization         @relation(fields: [organizationId], references: [id])
+  trainingSession     TrainingSession      @relation(fields: [trainingSessionId, organizationId], references: [id, organizationId])
+  employee            Employee             @relation(fields: [employeeId, organizationId], references: [id, organizationId])
+  attendanceRecords   AttendanceRecord[]
+  evaluationResponses EvaluationResponse[]
+  certificates        Certificate[]
+
+  @@unique([trainingSessionId, employeeId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([trainingSessionId])
+  @@index([employeeId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("enrollments")
+}
+
+model AttendanceRecord {
+  id                  String           @id @default(uuid()) @db.Uuid
+  organizationId      String           @map("organization_id") @db.Uuid
+  enrollmentId        String           @map("enrollment_id") @db.Uuid
+  trainingSessionId   String           @map("training_session_id") @db.Uuid
+  employeeId          String           @map("employee_id") @db.Uuid
+  method              AttendanceMethod
+  status              AttendanceStatus @default(PRESENT)
+  checkInAt           DateTime?        @map("check_in_at")
+  checkOutAt          DateTime?        @map("check_out_at")
+  evidenceDocumentId  String?          @map("evidence_document_id") @db.Uuid
+  qrToken             String?          @map("qr_token")
+  signatureStorageKey String?          @map("signature_storage_key")
+  latitude            Decimal?         @db.Decimal(10, 7)
+  longitude           Decimal?         @db.Decimal(10, 7)
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  deletedAt           DateTime?        @map("deleted_at")
+  version             Int              @default(1)
+
+  organization     Organization    @relation(fields: [organizationId], references: [id])
+  enrollment       Enrollment      @relation(fields: [enrollmentId, organizationId], references: [id, organizationId])
+  trainingSession  TrainingSession @relation(fields: [trainingSessionId, organizationId], references: [id, organizationId])
+  employee         Employee        @relation(fields: [employeeId, organizationId], references: [id, organizationId])
+  evidenceDocument Document?       @relation("AttendanceEvidenceDocument", fields: [evidenceDocumentId, organizationId], references: [id, organizationId])
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([enrollmentId])
+  @@index([trainingSessionId])
+  @@index([employeeId])
+  @@index([evidenceDocumentId])
+  @@index([checkInAt])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("attendance_records")
+}
+
+model Evaluation {
+  id                String         @id @default(uuid()) @db.Uuid
+  organizationId    String         @map("organization_id") @db.Uuid
+  trainingSessionId String         @map("training_session_id") @db.Uuid
+  type              EvaluationType
+  title             String
+  description       String?
+  passingScore      Decimal?       @map("passing_score") @db.Decimal(5, 2)
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  deletedAt         DateTime?      @map("deleted_at")
+  version           Int            @default(1)
+
+  organization    Organization         @relation(fields: [organizationId], references: [id])
+  trainingSession TrainingSession      @relation(fields: [trainingSessionId, organizationId], references: [id, organizationId])
+  questions       EvaluationQuestion[]
+  responses       EvaluationResponse[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([trainingSessionId])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@map("evaluations")
+}
+
+model EvaluationQuestion {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organizationId String                 @map("organization_id") @db.Uuid
+  evaluationId   String                 @map("evaluation_id") @db.Uuid
+  type           EvaluationQuestionType @default(SINGLE_CHOICE)
+  questionText   String                 @map("question_text")
+  options        Json?
+  correctAnswer  Json?                  @map("correct_answer")
+  points         Decimal?               @db.Decimal(8, 2)
+  orderIndex     Int                    @map("order_index")
+  required       Boolean                @default(true)
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime               @updatedAt @map("updated_at")
+  deletedAt      DateTime?              @map("deleted_at")
+  version        Int                    @default(1)
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  evaluation   Evaluation         @relation(fields: [evaluationId, organizationId], references: [id, organizationId])
+  answers      EvaluationAnswer[]
+
+  @@unique([evaluationId, orderIndex])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([evaluationId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("evaluation_questions")
+}
+
+model EvaluationResponse {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  evaluationId   String    @map("evaluation_id") @db.Uuid
+  enrollmentId   String?   @map("enrollment_id") @db.Uuid
+  employeeId     String    @map("employee_id") @db.Uuid
+  score          Decimal?  @db.Decimal(5, 2)
+  passed         Boolean?
+  answersPayload Json?     @map("answers_payload")
+  submittedAt    DateTime  @default(now()) @map("submitted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization       @relation(fields: [organizationId], references: [id])
+  evaluation   Evaluation         @relation(fields: [evaluationId, organizationId], references: [id, organizationId])
+  enrollment   Enrollment?        @relation(fields: [enrollmentId, organizationId], references: [id, organizationId])
+  employee     Employee           @relation(fields: [employeeId, organizationId], references: [id, organizationId])
+  answers      EvaluationAnswer[]
+
+  @@unique([evaluationId, employeeId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([evaluationId])
+  @@index([enrollmentId])
+  @@index([employeeId])
+  @@map("evaluation_responses")
+}
+
+model EvaluationAnswer {
+  id                   String    @id @default(uuid()) @db.Uuid
+  organizationId       String    @map("organization_id") @db.Uuid
+  evaluationResponseId String    @map("evaluation_response_id") @db.Uuid
+  evaluationQuestionId String    @map("evaluation_question_id") @db.Uuid
+  employeeId           String    @map("employee_id") @db.Uuid
+  answer               Json
+  score                Decimal?  @db.Decimal(8, 2)
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
+  version              Int       @default(1)
+
+  organization       Organization       @relation(fields: [organizationId], references: [id])
+  evaluationResponse EvaluationResponse @relation(fields: [evaluationResponseId, organizationId], references: [id, organizationId])
+  evaluationQuestion EvaluationQuestion @relation(fields: [evaluationQuestionId, organizationId], references: [id, organizationId])
+  employee           Employee           @relation(fields: [employeeId, organizationId], references: [id, organizationId])
+
+  @@unique([evaluationResponseId, evaluationQuestionId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([evaluationResponseId])
+  @@index([evaluationQuestionId])
+  @@index([employeeId])
+  @@map("evaluation_answers")
+}
+
+model Certificate {
+  id                String            @id @default(uuid()) @db.Uuid
+  organizationId    String            @map("organization_id") @db.Uuid
+  enrollmentId      String?           @map("enrollment_id") @db.Uuid
+  employeeId        String            @map("employee_id") @db.Uuid
+  courseId          String            @map("course_id") @db.Uuid
+  trainingSessionId String            @map("training_session_id") @db.Uuid
+  certificateNumber String            @unique @map("certificate_number")
+  verificationCode  String            @unique @map("verification_code")
+  status            CertificateStatus @default(ISSUED)
+  issuedAt          DateTime          @default(now()) @map("issued_at")
+  expiresAt         DateTime?         @map("expires_at") @db.Date
+  fileUrl           String?           @map("file_url")
+  documentId        String?           @map("document_id") @db.Uuid
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  deletedAt         DateTime?         @map("deleted_at")
+  version           Int               @default(1)
+
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  enrollment      Enrollment?     @relation(fields: [enrollmentId, organizationId], references: [id, organizationId])
+  employee        Employee        @relation(fields: [employeeId, organizationId], references: [id, organizationId])
+  course          Course          @relation(fields: [courseId, organizationId], references: [id, organizationId])
+  trainingSession TrainingSession @relation(fields: [trainingSessionId, organizationId], references: [id, organizationId])
+  document        Document?       @relation("CertificateDocument", fields: [documentId, organizationId], references: [id, organizationId])
+
+  /// MVP keeps strict uniqueness for certificate numbers even across soft-deleted rows.
+  /// Production may require a PostgreSQL partial unique index:
+  /// WHERE deleted_at IS NULL.
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([enrollmentId])
+  @@index([employeeId])
+  @@index([courseId])
+  @@index([trainingSessionId])
+  @@index([documentId])
+  @@index([issuedAt])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("certificates")
+}
+
+model SenceDeclaration {
+  id                String                 @id @default(uuid()) @db.Uuid
+  organizationId    String                 @map("organization_id") @db.Uuid
+  trainingSessionId String                 @map("training_session_id") @db.Uuid
+  senceCode         String?                @map("sence_code")
+  status            SenceDeclarationStatus @default(DRAFT)
+  declaredAmount    Decimal?               @map("declared_amount") @db.Decimal(14, 2)
+  taxCreditAmount   Decimal?               @map("tax_credit_amount") @db.Decimal(14, 2)
+  externalCode      String?                @map("external_code")
+  submittedAt       DateTime?              @map("submitted_at")
+  responsePayload   Json?                  @map("response_payload")
+  createdAt         DateTime               @default(now()) @map("created_at")
+  updatedAt         DateTime               @updatedAt @map("updated_at")
+  deletedAt         DateTime?              @map("deleted_at")
+  version           Int                    @default(1)
+
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  trainingSession TrainingSession @relation(fields: [trainingSessionId, organizationId], references: [id, organizationId])
+  documents       SenceDocument[]
+
+  @@unique([organizationId, trainingSessionId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([trainingSessionId])
+  @@index([senceCode])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("sence_declarations")
+}
+
+model SenceDocument {
+  id                 String    @id @default(uuid()) @db.Uuid
+  organizationId     String    @map("organization_id") @db.Uuid
+  senceDeclarationId String    @map("sence_declaration_id") @db.Uuid
+  documentId         String    @map("document_id") @db.Uuid
+  documentType       String?   @map("document_type")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+  deletedAt          DateTime? @map("deleted_at")
+  version            Int       @default(1)
+
+  organization     Organization     @relation(fields: [organizationId], references: [id])
+  senceDeclaration SenceDeclaration @relation(fields: [senceDeclarationId, organizationId], references: [id, organizationId])
+  document         Document         @relation("SenceDocumentFile", fields: [documentId, organizationId], references: [id, organizationId])
+
+  @@unique([senceDeclarationId, documentId])
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([senceDeclarationId])
+  @@index([documentId])
+  @@map("sence_documents")
+}
+
+model Document {
+  id               String       @id @default(uuid()) @db.Uuid
+  organizationId   String       @map("organization_id") @db.Uuid
+  type             DocumentType
+  entityType       String?      @map("entity_type")
+  entityId         String?      @map("entity_id") @db.Uuid
+  fileName         String       @map("file_name")
+  fileUrl          String?      @map("file_url")
+  mimeType         String?      @map("mime_type")
+  storageKey       String?      @map("storage_key")
+  sizeBytes        Int?         @map("size_bytes")
+  uploadedByUserId String?      @map("uploaded_by_user_id") @db.Uuid
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  deletedAt        DateTime?    @map("deleted_at")
+  version          Int          @default(1)
+
+  organization              Organization       @relation(fields: [organizationId], references: [id])
+  uploadedBy                User?              @relation("UploadedDocuments", fields: [uploadedByUserId, organizationId], references: [id, organizationId])
+  attendanceEvidenceRecords AttendanceRecord[] @relation("AttendanceEvidenceDocument")
+  certificates              Certificate[]      @relation("CertificateDocument")
+  senceDocuments            SenceDocument[]    @relation("SenceDocumentFile")
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([uploadedByUserId])
+  @@index([entityType, entityId])
+  @@index([fileName])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@map("documents")
+}
+
+model Notification {
+  id             String             @id @default(uuid()) @db.Uuid
+  organizationId String             @map("organization_id") @db.Uuid
+  userId         String?            @map("user_id") @db.Uuid
+  title          String
+  message        String
+  channel        String?
+  status         NotificationStatus @default(PENDING)
+  metadata       Json?
+  readAt         DateTime?          @map("read_at")
+  sentAt         DateTime?          @map("sent_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  deletedAt      DateTime?          @map("deleted_at")
+  version        Int                @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  user         User?        @relation("UserNotifications", fields: [userId, organizationId], references: [id, organizationId])
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([userId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, status, createdAt])
+  @@map("notifications")
+}
+
+model ReportSnapshot {
+  id              String             @id @default(uuid()) @db.Uuid
+  organizationId  String             @map("organization_id") @db.Uuid
+  createdByUserId String?            @map("created_by_user_id") @db.Uuid
+  type            ReportSnapshotType
+  name            String
+  periodFrom      DateTime?          @map("period_from") @db.Date
+  periodTo        DateTime?          @map("period_to") @db.Date
+  filters         Json?
+  data            Json
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+  deletedAt       DateTime?          @map("deleted_at")
+  version         Int                @default(1)
+
+  organization  Organization @relation(fields: [organizationId], references: [id])
+  createdByUser User?        @relation("ReportSnapshotCreatedBy", fields: [createdByUserId, organizationId], references: [id, organizationId])
+
+  @@unique([id, organizationId])
+  @@index([organizationId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([createdByUserId])
+  @@index([periodFrom, periodTo])
+  @@map("report_snapshots")
+}
+
+model AuditEvent {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String?   @map("organization_id") @db.Uuid
+  actorUserId    String?   @map("actor_user_id") @db.Uuid
+  entityType     String    @map("entity_type")
+  entityId       String?   @map("entity_id") @db.Uuid
+  action         String
+  metadata       Json
+  before         Json?
+  after          Json?
+  ipAddress      String?   @map("ip_address")
+  userAgent      String?   @map("user_agent")
+  occurredAt     DateTime  @default(now()) @map("occurred_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  actor        User?         @relation("AuditEventActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, deletedAt])
+  @@map("audit_events")
+}
