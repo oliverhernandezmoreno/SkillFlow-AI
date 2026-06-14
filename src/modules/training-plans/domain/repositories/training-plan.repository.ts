@@ -9,7 +9,7 @@ export interface TrainingPlanSearchFilters {
 }
 
 export interface TrainingPlanRepository {
-  findById(id: string): Promise<TrainingPlan | null>;
+  findById(id: string, organizationId: string): Promise<TrainingPlan | null>;
   findByOrganizationYear(organizationId: string, year: number): Promise<TrainingPlan | null>;
   search(
     filters: TrainingPlanSearchFilters,

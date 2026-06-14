@@ -1,153 +1,119 @@
-# Development Guide
+# SkillFlow AI Development Guide
 
-This guide provides step-by-step instructions for setting up the development environment and running tests for the LTI ATS system.
+This guide explains how to run, test, and validate the SkillFlow AI backend locally.
 
-## 🚀 Setup Instructions
+## Prerequisites
 
-### Prerequisites
+- Node.js 20 or newer
+- npm
+- Docker and Docker Compose
+- Git
 
-Ensure you have the following installed:
-- **Node.js** (v16 or higher)
-- **npm** (v8 or higher)
-- **Docker** and **Docker Compose**
-- **Git**
-
-### 1. Clone the Repository
+## Setup
 
 ```bash
-git clone git@github.com:LIDR-academy/AI4Devs-LTI-extended.git
-cd AI4Devs-LTI-extended
-```
-
-### 2. Environment Configuration
-
-Create environment files for both backend and frontend:
-
-**Backend Environment** (`backend/.env`):
-```env
-# Database Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=LTIdbUser
-DB_PASSWORD=D1ymf8wyQEGthFR1E9xhCq
-DB_NAME=LTIdb
-
-# Application Configuration
-PORT=3000
-NODE_ENV=development
-
-# Prisma Database URL
-DATABASE_URL="postgresql://LTIdbUser:D1ymf8wyQEGthFR1E9xhCq@localhost:5432/LTIdb"
-```
-
-**Frontend Environment** (`frontend/.env`):
-```env
-REACT_APP_API_URL=http://localhost:3000
-```
-
-### 3. Database Setup (PostgreSQL with Docker)
-
-Start the PostgreSQL database using Docker Compose:
-
-```bash
-# Start PostgreSQL container
-docker-compose up -d
-
-# Verify the database is running
-docker-compose ps
-```
-
-The PostgreSQL database will be available at:
-- **Host**: `localhost`
-- **Port**: `5432`
-- **Database**: `LTIdb`
-- **Username**: `LTIdbUser`
-- **Password**: `D1ymf8wyQEGthFR1E9xhCq`
-
-### 4. Backend Setup
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
 npm install
-
-# Generate Prisma client
+cp .env.example .env
+docker compose up -d
 npm run prisma:generate
+npm run prisma:validate
+```
 
-# Run database migrations
-npx prisma migrate deploy
+## Run The API
 
-# (Optional) Seed the database with sample data
-npx prisma db seed
-
-# Start the development server
+```bash
 npm run dev
 ```
 
-The backend API will be available at `http://localhost:3000`
+Default base URLs:
 
-### 5. Frontend Setup
+- Root health check: `http://localhost:3000/health`
+- Versioned API: `http://localhost:3000/api/v1`
+- Versioned health check: `http://localhost:3000/api/v1/health`
+
+## Environment Variables
+
+Development may use safe local defaults for missing secrets. Production must explicitly provide:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `JWT_REFRESH_SECRET`
+
+Other supported variables:
+
+- `PORT`
+- `JWT_ACCESS_EXPIRES_IN`
+- `JWT_REFRESH_EXPIRES_IN`
+- `ALLOWED_ORIGINS`
+- `JSON_PAYLOAD_LIMIT`
+- `RATE_LIMIT_WINDOW_MS`
+- `RATE_LIMIT_MAX_REQUESTS`
+
+## Database
+
+Local PostgreSQL is defined in `docker-compose.yml`.
 
 ```bash
-# Navigate to frontend directory (from project root)
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm start
+docker compose up -d
+docker compose ps
 ```
 
-The frontend application will be available at `http://localhost:3001`
+The development database URL from `.env.example` uses port `5433`.
 
-### 6. Cypress Testing Suite Setup
+## Prisma
 
 ```bash
-# From the frontend directory
-cd frontend
-
-# Install Cypress (if not already installed)
-npm install
-
-# Open Cypress Test Runner (Interactive)
-npm run cypress:open
-
-# Or run tests headlessly
-npm run cypress:run
+npm run prisma:generate
+npm run prisma:validate
+npx prisma migrate dev
 ```
 
-## 🧪 Testing
+Use `prisma/schema.prisma` as the canonical schema. The `backend/prisma/schema.prisma` path is a symlink for compatibility.
 
-### Backend Testing
+## Quality Gate
+
+Run the full local backend gate before opening a pull request:
 
 ```bash
-cd backend
-
-# Run all tests
+npm run build
+npm run lint
 npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
+npx prisma validate
 ```
 
-### Frontend Testing
+The GitHub Actions workflow `.github/workflows/backend-ci.yml` runs the same checks.
 
-```bash
-cd frontend
+## Security Expectations
 
-# Run unit tests
-npm test
+- Protected business endpoints must use JWT authentication.
+- Protected business endpoints must use RBAC permission checks.
+- Tenant-owned repositories must query and update records with `organizationId`.
+- Controllers must derive tenant context from the authenticated token.
+- Production errors must not expose stack traces, Prisma messages, or internal exception details.
+- CORS must be configured through `ALLOWED_ORIGINS`.
 
-# Run E2E tests with Cypress
-npm run cypress:run
+## Current Modules
 
-# Open Cypress Test Runner
-npm run cypress:open
-```
+Implemented:
 
+- Auth
+- Organizations
+- Users
+- Employees
+- Courses
+- Training Plans
+
+Not implemented yet:
+
+- Training Sessions
+- Enrollments
+- Attendance
+- Evaluations
+- Certificates
+- SENCE
+- Providers
+- Documents
+- Reports
+- AI Copilot
+
+See `docs/openapi-implementation-report.md` for the current API inventory.

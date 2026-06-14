@@ -47,9 +47,9 @@ export class PrismaAuthIdentityRepository implements AuthIdentityRepository {
     return [...new Set(rolePermissions.map((rolePermission) => rolePermission.permission.code))];
   }
 
-  async recordSuccessfulLogin(userId: string): Promise<void> {
+  async recordSuccessfulLogin(userId: string, organizationId: string): Promise<void> {
     await this.prisma.user.update({
-      where: { id: userId },
+      where: { id_organizationId: { id: userId, organizationId } },
       data: { lastLoginAt: new Date() },
     });
   }

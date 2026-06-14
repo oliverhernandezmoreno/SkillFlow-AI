@@ -7,7 +7,7 @@ export interface EmployeeSearchFilters {
 }
 
 export interface EmployeeRepository {
-  findById(id: string): Promise<Employee | null>;
+  findById(id: string, organizationId: string): Promise<Employee | null>;
   findByRut(organizationId: string, rut: string): Promise<Employee | null>;
   search(filters: EmployeeSearchFilters, pagination: PaginationInput): Promise<PaginatedResult<Employee>>;
   save(employee: Employee): Promise<void>;

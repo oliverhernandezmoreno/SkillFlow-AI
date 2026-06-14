@@ -1,6 +1,9 @@
 import { Router } from 'express';
 
 import { validateBody } from '../../../../../shared/interfaces/http/validate-request.js';
+import { JwtTokenService } from '../../../../auth/infrastructure/services/jwt-token.service.js';
+import { requireAuth } from '../../../../auth/interfaces/http/middlewares/require-auth.middleware.js';
+import { requirePermission } from '../../../../auth/interfaces/http/middlewares/require-permission.middleware.js';
 import { ArchiveCourseUseCase } from '../../../application/use-cases/archive-course.use-case.js';
 import { CreateCourseUseCase } from '../../../application/use-cases/create-course.use-case.js';
 import { GetCourseUseCase } from '../../../application/use-cases/get-course.use-case.js';
@@ -13,6 +16,7 @@ import { createCourseSchema, updateCourseSchema } from '../validators/course.val
 export function createCourseRouter(): Router {
   const router = Router();
   const repository = new PrismaCourseRepository();
+  const tokenService = new JwtTokenService();
   const controller = new CourseController(
     new ListCoursesUseCase(repository),
     new CreateCourseUseCase(repository),
@@ -21,11 +25,22 @@ export function createCourseRouter(): Router {
     new ArchiveCourseUseCase(repository),
   );
 
-  router.get('/courses', controller.list);
-  router.post('/courses', validateBody(createCourseSchema), controller.create);
-  router.get('/courses/:courseId', controller.get);
-  router.patch('/courses/:courseId', validateBody(updateCourseSchema), controller.update);
-  router.delete('/courses/:courseId', controller.archive);
+  router.use('/courses', requireAuth(tokenService));
+  router.get('/courses', requirePermission('courses.read'), controller.list);
+  router.post(
+    '/courses',
+    requirePermission('courses.create'),
+    validateBody(createCourseSchema),
+    controller.create,
+  );
+  router.get('/courses/:courseId', requirePermission('courses.read'), controller.get);
+  router.patch(
+    '/courses/:courseId',
+    requirePermission('courses.update'),
+    validateBody(updateCourseSchema),
+    controller.update,
+  );
+  router.delete('/courses/:courseId', requirePermission('courses.update'), controller.archive);
 
   return router;
 }

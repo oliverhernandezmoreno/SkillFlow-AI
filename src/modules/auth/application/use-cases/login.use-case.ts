@@ -32,7 +32,7 @@ export class LoginUseCase {
     }
 
     const permissions = await this.authIdentityRepository.findPermissionCodesByUserId(props.id);
-    await this.authIdentityRepository.recordSuccessfulLogin(props.id);
+    await this.authIdentityRepository.recordSuccessfulLogin(props.id, props.organizationId);
     await this.authIdentityRepository.recordLoginAuditEvent({
       organizationId: props.organizationId,
       actorUserId: props.id,

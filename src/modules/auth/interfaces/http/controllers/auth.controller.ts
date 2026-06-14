@@ -32,7 +32,8 @@ export class AuthController {
   me = asyncHandler(
     async (_request: Request, response: Response<unknown, AuthenticatedLocals>): Promise<void> => {
       const userId = response.locals.auth?.userId ?? null;
-      const result = await this.getCurrentUserUseCase.execute(userId);
+      const organizationId = response.locals.auth?.organizationId ?? null;
+      const result = await this.getCurrentUserUseCase.execute(userId, organizationId);
       response.status(200).json(result);
     },
   );

@@ -30,22 +30,22 @@ export function createUserRouter(): Router {
   );
 
   router.use('/users', requireAuth(tokenService));
-  router.get('/users', requirePermission('users:read'), controller.list);
-  router.post('/users', requirePermission('users:create'), validateBody(createUserSchema), controller.create);
-  router.get('/users/:userId', requirePermission('users:read'), controller.get);
+  router.get('/users', requirePermission('users.read'), controller.list);
+  router.post('/users', requirePermission('users.create'), validateBody(createUserSchema), controller.create);
+  router.get('/users/:userId', requirePermission('users.read'), controller.get);
   router.put(
     '/users/:userId',
-    requirePermission('users:update'),
+    requirePermission('users.update'),
     validateBody(updateUserSchema),
     controller.update,
   );
   router.patch(
     '/users/:userId',
-    requirePermission('users:update'),
+    requirePermission('users.update'),
     validateBody(updateUserSchema),
     controller.update,
   );
-  router.delete('/users/:userId', requirePermission('users:delete'), controller.deactivate);
+  router.delete('/users/:userId', requirePermission('users.update'), controller.deactivate);
 
   return router;
 }

@@ -1,4 +1,8 @@
-import { ConflictError } from '../../../../shared/domain/errors.js';
+import {
+  anonymousUseCaseContext,
+  type UseCaseContext,
+} from '../../../../shared/application/use-case-context.js';
+import { ConflictError, ForbiddenError } from '../../../../shared/domain/errors.js';
 import { Employee } from '../../domain/entities/employee.entity.js';
 import type { EmployeeRepository } from '../../domain/repositories/employee.repository.js';
 import type { CreateEmployeeDto, EmployeeDto } from '../dto/employee.dto.js';
@@ -7,7 +11,14 @@ import { EmployeeMapper } from '../mappers/employee.mapper.js';
 export class CreateEmployeeUseCase {
   constructor(private readonly employeeRepository: EmployeeRepository) {}
 
-  async execute(input: CreateEmployeeDto): Promise<EmployeeDto> {
+  async execute(
+    input: CreateEmployeeDto,
+    context: UseCaseContext = anonymousUseCaseContext,
+  ): Promise<EmployeeDto> {
+    if (context.organizationId && context.organizationId !== input.organizationId) {
+      throw new ForbiddenError('Organization access denied');
+    }
+
     const existing = await this.employeeRepository.findByRut(input.organizationId, input.documentNumber);
     if (existing) {
       throw new ConflictError('Employee document number already exists in organization');

@@ -18,10 +18,10 @@ export class PrismaAuditLogger implements AuditLogger {
       userAgent: input.userAgent ?? null,
     };
     if (input.before !== undefined) {
-      data.before = input.before === null ? Prisma.JsonNull : (input.before as Prisma.InputJsonValue);
+      data.before = input.before ?? Prisma.JsonNull;
     }
     if (input.after !== undefined) {
-      data.after = input.after === null ? Prisma.JsonNull : (input.after as Prisma.InputJsonValue);
+      data.after = input.after ?? Prisma.JsonNull;
     }
 
     await this.prisma.auditEvent.create({

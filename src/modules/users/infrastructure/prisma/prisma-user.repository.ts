@@ -14,9 +14,9 @@ type PrismaUserWithRoles = PrismaUser & { userRoles?: { roleId: string }[] };
 export class PrismaUserRepository implements UserRepository {
   constructor(private readonly prisma: PrismaClient = prismaClient) {}
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string, organizationId: string): Promise<User | null> {
     const record = await this.prisma.user.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, organizationId, deletedAt: null },
       include: { userRoles: true },
     });
     return record ? this.toDomain(record) : null;
@@ -101,7 +101,7 @@ export class PrismaUserRepository implements UserRepository {
     const props = user.toPrimitives();
     await this.prisma.$transaction([
       this.prisma.user.update({
-        where: { id: props.id },
+        where: { id_organizationId: { id: props.id, organizationId: props.organizationId } },
         data: {
           firstName: props.firstName,
           lastName: props.lastName,

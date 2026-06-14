@@ -3,7 +3,7 @@ import {
   anonymousUseCaseContext,
   type UseCaseContext,
 } from '../../../../shared/application/use-case-context.js';
-import { NotFoundError } from '../../../../shared/domain/errors.js';
+import { NotFoundError, UnauthorizedError } from '../../../../shared/domain/errors.js';
 import type { UserRepository } from '../../domain/repositories/user.repository.js';
 import type { UserDto } from '../dto/user.dto.js';
 import { UserMapper } from '../mappers/user.mapper.js';
@@ -15,14 +15,15 @@ export class ActivateUserUseCase {
   ) {}
 
   async execute(id: string, context: UseCaseContext = anonymousUseCaseContext): Promise<UserDto> {
-    const user = await this.userRepository.findById(id);
+    if (!context.organizationId) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const user = await this.userRepository.findById(id, context.organizationId);
     if (!user) {
       throw new NotFoundError('User not found');
     }
     const before = UserMapper.toDto(user);
-    if (context.organizationId && before.organizationId !== context.organizationId) {
-      throw new NotFoundError('User not found');
-    }
 
     user.activate();
     await this.userRepository.update(user);

@@ -5,7 +5,7 @@ import {
   anonymousUseCaseContext,
   type UseCaseContext,
 } from '../../../../shared/application/use-case-context.js';
-import { ConflictError } from '../../../../shared/domain/errors.js';
+import { ConflictError, ForbiddenError } from '../../../../shared/domain/errors.js';
 import type { PasswordHasher } from '../../../auth/domain/services/password-hasher.js';
 import { User } from '../../domain/entities/user.entity.js';
 import type { UserRepository } from '../../domain/repositories/user.repository.js';
@@ -23,6 +23,10 @@ export class CreateUserUseCase {
     input: CreateUserDto,
     context: UseCaseContext = anonymousUseCaseContext,
   ): Promise<UserDto> {
+    if (context.organizationId && context.organizationId !== input.organizationId) {
+      throw new ForbiddenError('Organization access denied');
+    }
+
     const existing = await this.userRepository.findByEmail(input.organizationId, input.email);
     if (existing) {
       throw new ConflictError('User email already exists in organization');

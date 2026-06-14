@@ -9,8 +9,13 @@ import type { PasswordHasher } from '../auth/domain/services/password-hasher.js'
 class FakeUserRepository implements UserRepository {
   users: User[] = [];
 
-  async findById(id: string): Promise<User | null> {
-    return this.users.find((user) => user.id === id) ?? null;
+  async findById(id: string, organizationId: string): Promise<User | null> {
+    return (
+      this.users.find((user) => {
+        const props = user.toPrimitives();
+        return user.id === id && props.organizationId === organizationId;
+      }) ?? null
+    );
   }
 
   async findByEmail(organizationId: string, email: string): Promise<User | null> {
@@ -31,7 +36,13 @@ class FakeUserRepository implements UserRepository {
   }
 
   async update(user: User): Promise<void> {
-    this.users = this.users.map((current) => (current.id === user.id ? user : current));
+    const props = user.toPrimitives();
+    this.users = this.users.map((current) => {
+      const currentProps = current.toPrimitives();
+      return current.id === user.id && currentProps.organizationId === props.organizationId
+        ? user
+        : current;
+    });
   }
 }
 

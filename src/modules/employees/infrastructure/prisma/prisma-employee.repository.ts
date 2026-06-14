@@ -15,8 +15,10 @@ import type {
 export class PrismaEmployeeRepository implements EmployeeRepository {
   constructor(private readonly prisma: PrismaClient = prismaClient) {}
 
-  async findById(id: string): Promise<Employee | null> {
-    const record = await this.prisma.employee.findFirst({ where: { id, deletedAt: null } });
+  async findById(id: string, organizationId: string): Promise<Employee | null> {
+    const record = await this.prisma.employee.findFirst({
+      where: { id, organizationId, deletedAt: null },
+    });
     return record ? this.toDomain(record) : null;
   }
 
@@ -66,7 +68,10 @@ export class PrismaEmployeeRepository implements EmployeeRepository {
 
   async update(employee: Employee): Promise<void> {
     const props = employee.toPrimitives();
-    await this.prisma.employee.update({ where: { id: props.id }, data: props });
+    await this.prisma.employee.update({
+      where: { id_organizationId: { id: props.id, organizationId: props.organizationId } },
+      data: props,
+    });
   }
 
   private toDomain(record: PrismaEmployee): Employee {

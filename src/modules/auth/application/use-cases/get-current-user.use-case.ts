@@ -6,12 +6,12 @@ import type { UserRepository } from '../../../users/domain/repositories/user.rep
 export class GetCurrentUserUseCase {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async execute(userId: string | null): Promise<UserDto> {
-    if (!userId) {
+  async execute(userId: string | null, organizationId: string | null): Promise<UserDto> {
+    if (!userId || !organizationId) {
       throw new UnauthorizedError('Authentication required');
     }
 
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findById(userId, organizationId);
     if (!user) {
       throw new UnauthorizedError('Authentication required');
     }

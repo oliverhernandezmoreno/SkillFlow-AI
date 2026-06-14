@@ -28,33 +28,33 @@ export function createOrganizationRouter(): Router {
   );
 
   router.use('/organizations', requireAuth(tokenService));
-  router.get('/organizations', requirePermission('organizations:read'), controller.list);
+  router.get('/organizations', requirePermission('organizations.read'), controller.list);
   router.post(
     '/organizations',
-    requirePermission('organizations:create'),
+    requirePermission('organizations.update'),
     validateBody(createOrganizationSchema),
     controller.create,
   );
   router.get(
     '/organizations/:organizationId',
-    requirePermission('organizations:read'),
+    requirePermission('organizations.read'),
     controller.get,
   );
   router.put(
     '/organizations/:organizationId',
-    requirePermission('organizations:update'),
+    requirePermission('organizations.update'),
     validateBody(updateOrganizationSchema),
     controller.update,
   );
   router.patch(
     '/organizations/:organizationId',
-    requirePermission('organizations:update'),
+    requirePermission('organizations.update'),
     validateBody(updateOrganizationSchema),
     controller.update,
   );
   router.delete(
     '/organizations/:organizationId',
-    requirePermission('organizations:delete'),
+    requirePermission('organizations.update'),
     controller.deactivate,
   );
 

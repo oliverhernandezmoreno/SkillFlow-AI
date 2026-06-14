@@ -1,6 +1,9 @@
 import { Router } from 'express';
 
 import { validateBody } from '../../../../../shared/interfaces/http/validate-request.js';
+import { JwtTokenService } from '../../../../auth/infrastructure/services/jwt-token.service.js';
+import { requireAuth } from '../../../../auth/interfaces/http/middlewares/require-auth.middleware.js';
+import { requirePermission } from '../../../../auth/interfaces/http/middlewares/require-permission.middleware.js';
 import { CreateEmployeeUseCase } from '../../../application/use-cases/create-employee.use-case.js';
 import { GetEmployeeUseCase } from '../../../application/use-cases/get-employee.use-case.js';
 import { ListEmployeesUseCase } from '../../../application/use-cases/list-employees.use-case.js';
@@ -12,6 +15,7 @@ import { createEmployeeSchema, updateEmployeeSchema } from '../validators/employ
 export function createEmployeeRouter(): Router {
   const router = Router();
   const repository = new PrismaEmployeeRepository();
+  const tokenService = new JwtTokenService();
   const controller = new EmployeeController(
     new ListEmployeesUseCase(repository),
     new CreateEmployeeUseCase(repository),
@@ -19,10 +23,21 @@ export function createEmployeeRouter(): Router {
     new UpdateEmployeeUseCase(repository),
   );
 
-  router.get('/employees', controller.list);
-  router.post('/employees', validateBody(createEmployeeSchema), controller.create);
-  router.get('/employees/:employeeId', controller.get);
-  router.patch('/employees/:employeeId', validateBody(updateEmployeeSchema), controller.update);
+  router.use('/employees', requireAuth(tokenService));
+  router.get('/employees', requirePermission('employees.read'), controller.list);
+  router.post(
+    '/employees',
+    requirePermission('employees.create'),
+    validateBody(createEmployeeSchema),
+    controller.create,
+  );
+  router.get('/employees/:employeeId', requirePermission('employees.read'), controller.get);
+  router.patch(
+    '/employees/:employeeId',
+    requirePermission('employees.update'),
+    validateBody(updateEmployeeSchema),
+    controller.update,
+  );
 
   return router;
 }

@@ -2,7 +2,7 @@ import {
   anonymousUseCaseContext,
   type UseCaseContext,
 } from '../../../../shared/application/use-case-context.js';
-import { NotFoundError } from '../../../../shared/domain/errors.js';
+import { NotFoundError, UnauthorizedError } from '../../../../shared/domain/errors.js';
 import { TrainingPlanItem } from '../../domain/entities/training-plan-item.entity.js';
 import type { TrainingPlanRepository } from '../../domain/repositories/training-plan.repository.js';
 import type { CreateTrainingPlanItemDto, TrainingPlanItemDto } from '../dto/training-plan.dto.js';
@@ -16,14 +16,18 @@ export class CreateTrainingPlanItemUseCase {
     input: CreateTrainingPlanItemDto,
     context: UseCaseContext = anonymousUseCaseContext,
   ): Promise<TrainingPlanItemDto> {
-    const trainingPlan = await this.trainingPlanRepository.findById(trainingPlanId);
+    if (!context.organizationId) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const trainingPlan = await this.trainingPlanRepository.findById(
+      trainingPlanId,
+      context.organizationId,
+    );
     if (!trainingPlan) {
       throw new NotFoundError('Training plan not found');
     }
     const planProps = trainingPlan.toPrimitives();
-    if (context.organizationId && planProps.organizationId !== context.organizationId) {
-      throw new NotFoundError('Training plan not found');
-    }
 
     const item = TrainingPlanItem.create({
       organizationId: planProps.organizationId,

@@ -7,7 +7,7 @@ export interface UserSearchFilters {
 }
 
 export interface UserRepository {
-  findById(id: string): Promise<User | null>;
+  findById(id: string, organizationId: string): Promise<User | null>;
   findByEmail(organizationId: string, email: string): Promise<User | null>;
   search(filters: UserSearchFilters, pagination: PaginationInput): Promise<PaginatedResult<User>>;
   save(user: User): Promise<void>;

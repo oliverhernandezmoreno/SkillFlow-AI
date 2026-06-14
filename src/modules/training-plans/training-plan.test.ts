@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { AuditLogger, AuditLogInput } from '../../shared/application/audit-logger.js';
 import type { PaginatedResult, PaginationInput } from '../../shared/application/pagination.js';
-import { ConflictError } from '../../shared/domain/errors.js';
+import { ConflictError, NotFoundError } from '../../shared/domain/errors.js';
 import { CreateTrainingPlanUseCase } from './application/use-cases/create-training-plan.use-case.js';
 import { ApproveTrainingPlanUseCase } from './application/use-cases/approve-training-plan.use-case.js';
 import { CreateTrainingPlanItemUseCase } from './application/use-cases/create-training-plan-item.use-case.js';
@@ -21,8 +21,13 @@ class FakeTrainingPlanRepository implements TrainingPlanRepository {
   trainingPlans: TrainingPlan[] = [];
   items: TrainingPlanItem[] = [];
 
-  async findById(id: string): Promise<TrainingPlan | null> {
-    return this.trainingPlans.find((trainingPlan) => trainingPlan.id === id) ?? null;
+  async findById(id: string, organizationId: string): Promise<TrainingPlan | null> {
+    return (
+      this.trainingPlans.find((trainingPlan) => {
+        const props = trainingPlan.toPrimitives();
+        return trainingPlan.id === id && props.organizationId === organizationId;
+      }) ?? null
+    );
   }
 
   async findByOrganizationYear(organizationId: string, year: number): Promise<TrainingPlan | null> {
@@ -55,9 +60,13 @@ class FakeTrainingPlanRepository implements TrainingPlanRepository {
   }
 
   async update(trainingPlan: TrainingPlan): Promise<void> {
-    this.trainingPlans = this.trainingPlans.map((current) =>
-      current.id === trainingPlan.id ? trainingPlan : current,
-    );
+    const props = trainingPlan.toPrimitives();
+    this.trainingPlans = this.trainingPlans.map((current) => {
+      const currentProps = current.toPrimitives();
+      return current.id === trainingPlan.id && currentProps.organizationId === props.organizationId
+        ? trainingPlan
+        : current;
+    });
   }
 
   async saveItem(item: TrainingPlanItem): Promise<void> {
@@ -171,5 +180,22 @@ describe('Training Plans module', () => {
     expect(item.trainingPlanId).toBe(created.id);
     expect(item.estimatedParticipants).toBe(25);
     expect(item.targetCompetencies).toEqual(['safety']);
+  });
+
+  it('does not approve training plans across tenants', async () => {
+    const repository = new FakeTrainingPlanRepository();
+    const created = await new CreateTrainingPlanUseCase(repository).execute({
+      organizationId,
+      name: 'PAC 2026',
+      year: 2026,
+      budgetAmount: 1_000_000,
+    });
+
+    await expect(
+      new ApproveTrainingPlanUseCase(repository).execute(created.id, {
+        organizationId: '33333333-3333-4333-8333-333333333333',
+        actorUserId,
+      }),
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 });

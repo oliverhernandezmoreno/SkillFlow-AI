@@ -24,9 +24,9 @@ type PrismaTrainingPlanWithItems = PrismaTrainingPlan & { items: PrismaTrainingP
 export class PrismaTrainingPlanRepository implements TrainingPlanRepository {
   constructor(private readonly prisma: PrismaClient = prismaClient) {}
 
-  async findById(id: string): Promise<TrainingPlan | null> {
+  async findById(id: string, organizationId: string): Promise<TrainingPlan | null> {
     const record = await this.prisma.trainingPlan.findFirst({
-      where: { id, deletedAt: null },
+      where: { id, organizationId, deletedAt: null },
       include: { items: { where: { deletedAt: null } } },
     });
 
@@ -100,7 +100,7 @@ export class PrismaTrainingPlanRepository implements TrainingPlanRepository {
   async update(trainingPlan: TrainingPlan): Promise<void> {
     const props = trainingPlan.toPrimitives();
     await this.prisma.trainingPlan.update({
-      where: { id: props.id },
+      where: { id_organizationId: { id: props.id, organizationId: props.organizationId } },
       data: {
         name: props.name,
         budgetAmount: new Prisma.Decimal(props.budgetAmount),

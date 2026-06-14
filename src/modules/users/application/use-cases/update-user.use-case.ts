@@ -1,4 +1,4 @@
-import { NotFoundError } from '../../../../shared/domain/errors.js';
+import { NotFoundError, UnauthorizedError } from '../../../../shared/domain/errors.js';
 import { NoopAuditLogger, type AuditLogger } from '../../../../shared/application/audit-logger.js';
 import {
   anonymousUseCaseContext,
@@ -21,14 +21,15 @@ export class UpdateUserUseCase {
     input: UpdateUserDto,
     context: UseCaseContext = anonymousUseCaseContext,
   ): Promise<UserDto> {
-    const user = await this.userRepository.findById(id);
+    if (!context.organizationId) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const user = await this.userRepository.findById(id, context.organizationId);
     if (!user) {
       throw new NotFoundError('User not found');
     }
     const before = UserMapper.toDto(user);
-    if (context.organizationId && before.organizationId !== context.organizationId) {
-      throw new NotFoundError('User not found');
-    }
 
     const { password, ...profileInput } = input;
     user.update(profileInput);

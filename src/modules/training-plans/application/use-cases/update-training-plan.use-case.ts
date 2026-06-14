@@ -3,7 +3,7 @@ import {
   anonymousUseCaseContext,
   type UseCaseContext,
 } from '../../../../shared/application/use-case-context.js';
-import { NotFoundError } from '../../../../shared/domain/errors.js';
+import { NotFoundError, UnauthorizedError } from '../../../../shared/domain/errors.js';
 import type { TrainingPlanRepository } from '../../domain/repositories/training-plan.repository.js';
 import type { TrainingPlanDto, UpdateTrainingPlanDto } from '../dto/training-plan.dto.js';
 import { TrainingPlanMapper } from '../mappers/training-plan.mapper.js';
@@ -19,14 +19,15 @@ export class UpdateTrainingPlanUseCase {
     input: UpdateTrainingPlanDto,
     context: UseCaseContext = anonymousUseCaseContext,
   ): Promise<TrainingPlanDto> {
-    const trainingPlan = await this.trainingPlanRepository.findById(id);
+    if (!context.organizationId) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const trainingPlan = await this.trainingPlanRepository.findById(id, context.organizationId);
     if (!trainingPlan) {
       throw new NotFoundError('Training plan not found');
     }
     const before = TrainingPlanMapper.toDto(trainingPlan);
-    if (context.organizationId && before.organizationId !== context.organizationId) {
-      throw new NotFoundError('Training plan not found');
-    }
 
     trainingPlan.update(input);
     await this.trainingPlanRepository.update(trainingPlan);

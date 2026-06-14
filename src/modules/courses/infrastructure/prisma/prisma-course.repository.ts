@@ -12,8 +12,10 @@ import type { CourseRepository, CourseSearchFilters } from '../../domain/reposit
 export class PrismaCourseRepository implements CourseRepository {
   constructor(private readonly prisma: PrismaClient = prismaClient) {}
 
-  async findById(id: string): Promise<Course | null> {
-    const record = await this.prisma.course.findFirst({ where: { id, deletedAt: null } });
+  async findById(id: string, organizationId: string): Promise<Course | null> {
+    const record = await this.prisma.course.findFirst({
+      where: { id, organizationId, deletedAt: null },
+    });
     return record ? this.toDomain(record) : null;
   }
 
@@ -68,7 +70,10 @@ export class PrismaCourseRepository implements CourseRepository {
 
   async update(course: Course): Promise<void> {
     const props = course.toPrimitives();
-    await this.prisma.course.update({ where: { id: props.id }, data: props });
+    await this.prisma.course.update({
+      where: { id_organizationId: { id: props.id, organizationId: props.organizationId } },
+      data: props,
+    });
   }
 
   private toDomain(record: PrismaCourse): Course {

@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 
+import { loadEnvironment } from '../../../../config/environment.js';
 import { UnauthorizedError } from '../../../../shared/domain/errors.js';
 import type { User } from '../../../users/domain/entities/user.entity.js';
 import type {
@@ -26,19 +27,23 @@ interface JwtClaims extends jwt.JwtPayload {
   type: AuthTokenType;
 }
 
-const defaultJwtConfig: JwtTokenServiceConfig = {
-  accessTokenSecret: process.env['JWT_ACCESS_SECRET'] ?? 'development-access-token-secret',
-  refreshTokenSecret: process.env['JWT_REFRESH_SECRET'] ?? 'development-refresh-token-secret',
-  accessTokenExpiresIn: getTokenExpiresIn(process.env['JWT_ACCESS_EXPIRES_IN'], '15m'),
-  refreshTokenExpiresIn: getTokenExpiresIn(process.env['JWT_REFRESH_EXPIRES_IN'], '7d'),
-};
+function createDefaultJwtConfig(): JwtTokenServiceConfig {
+  const environment = loadEnvironment();
+
+  return {
+    accessTokenSecret: environment.JWT_SECRET,
+    refreshTokenSecret: environment.JWT_REFRESH_SECRET,
+    accessTokenExpiresIn: getTokenExpiresIn(environment.JWT_ACCESS_EXPIRES_IN, '15m'),
+    refreshTokenExpiresIn: getTokenExpiresIn(environment.JWT_REFRESH_EXPIRES_IN, '7d'),
+  };
+}
 
 function getTokenExpiresIn(value: string | undefined, fallback: TokenExpiresIn): TokenExpiresIn {
   return (value ?? fallback) as TokenExpiresIn;
 }
 
 export class JwtTokenService implements TokenService {
-  constructor(private readonly config: JwtTokenServiceConfig = defaultJwtConfig) {}
+  constructor(private readonly config: JwtTokenServiceConfig = createDefaultJwtConfig()) {}
 
   createTokenPair(user: User, permissions: string[] = []): TokenPair {
     const props = user.toPrimitives();

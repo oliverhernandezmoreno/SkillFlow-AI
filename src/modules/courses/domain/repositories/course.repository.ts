@@ -9,7 +9,7 @@ export interface CourseSearchFilters {
 }
 
 export interface CourseRepository {
-  findById(id: string): Promise<Course | null>;
+  findById(id: string, organizationId: string): Promise<Course | null>;
   findByCode(organizationId: string, code: string): Promise<Course | null>;
   search(filters: CourseSearchFilters, pagination: PaginationInput): Promise<PaginatedResult<Course>>;
   save(course: Course): Promise<void>;

@@ -12,8 +12,10 @@ import { User } from '../users/domain/entities/user.entity.js';
 import { NodePasswordHasher } from './infrastructure/services/node-password-hasher.js';
 import { JwtTokenService } from './infrastructure/services/jwt-token.service.js';
 import { LoginUseCase } from './application/use-cases/login.use-case.js';
+import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case.js';
 import type { AuthenticatedLocals } from './interfaces/http/auth-context.js';
 import { requireAuth } from './interfaces/http/middlewares/require-auth.middleware.js';
+import { requirePermission } from './interfaces/http/middlewares/require-permission.middleware.js';
 
 class FakeOrganizationRepository implements OrganizationRepository {
   organizations: Organization[] = [];
@@ -48,8 +50,13 @@ class FakeOrganizationRepository implements OrganizationRepository {
 class FakeUserRepository implements UserRepository {
   users: User[] = [];
 
-  async findById(id: string): Promise<User | null> {
-    return this.users.find((user) => user.id === id) ?? null;
+  async findById(id: string, organizationId: string): Promise<User | null> {
+    return (
+      this.users.find((user) => {
+        const props = user.toPrimitives();
+        return user.id === id && props.organizationId === organizationId;
+      }) ?? null
+    );
   }
 
   async findByEmail(organizationId: string, email: string): Promise<User | null> {
@@ -95,7 +102,7 @@ class FakeAuthIdentityRepository implements AuthIdentityRepository {
     return this.permissions;
   }
 
-  async recordSuccessfulLogin(userId: string): Promise<void> {
+  async recordSuccessfulLogin(userId: string, _organizationId: string): Promise<void> {
     this.successfulLoginUserIds.push(userId);
   }
 
@@ -161,7 +168,7 @@ describe('Auth module', () => {
       passwordHash: await passwordHasher.hash('password123'),
       roleIds: ['f5576ad3-bc77-4538-9c1a-7af720dfbbaa'],
     });
-    const authIdentityRepository = new FakeAuthIdentityRepository(user, ['users:read']);
+    const authIdentityRepository = new FakeAuthIdentityRepository(user, ['users.read']);
 
     const result = await new LoginUseCase(
       authIdentityRepository,
@@ -244,5 +251,44 @@ describe('Auth module', () => {
 
     expect(wasNextCalled).toBe(true);
     expect(response.locals.auth?.userId).toBe(user.id);
+  });
+
+  it('rejects insufficient permissions', () => {
+    const middleware = requirePermission('users.read');
+    const response = {
+      locals: {
+        auth: {
+          userId: '22222222-2222-4222-8222-222222222222',
+          organizationId: '1b1f1c99-90a5-458d-a22a-84519a7ce6d0',
+          roleIds: [],
+          permissions: ['courses.read'],
+          type: 'access',
+        },
+      },
+    } as unknown as Response<unknown, AuthenticatedLocals>;
+    const next: NextFunction = () => {
+      return undefined;
+    };
+
+    expect(() => {
+      middleware({} as Request, response, next);
+    }).toThrow('Permission denied');
+  });
+
+  it('refreshes a valid refresh token', async () => {
+    const passwordHasher = new NodePasswordHasher();
+    const user = User.create({
+      organizationId: '1b1f1c99-90a5-458d-a22a-84519a7ce6d0',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      passwordHash: await passwordHasher.hash('password123'),
+    });
+    const tokenPair = tokenService.createTokenPair(user, ['users.read']);
+
+    const refreshed = new RefreshTokenUseCase(tokenService).execute(tokenPair.refreshToken);
+
+    expect(refreshed.accessToken).toEqual(expect.any(String));
+    expect(refreshed.refreshToken).toEqual(expect.any(String));
   });
 });
