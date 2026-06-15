@@ -72,6 +72,19 @@ These endpoints are registered by the application today.
 | GET | `/api/v1/training-sessions/{trainingSessionId}/attendance` | Yes |
 | GET | `/api/v1/employees/{employeeId}/attendance` | Yes |
 | GET | `/api/v1/attendance/{attendanceId}/metrics` | Yes |
+| GET | `/api/v1/evaluations` | Yes |
+| POST | `/api/v1/evaluations` | Yes |
+| GET | `/api/v1/evaluations/{evaluationId}` | Yes |
+| PUT | `/api/v1/evaluations/{evaluationId}` | Yes |
+| POST | `/api/v1/evaluations/{evaluationId}/questions` | Yes |
+| PUT | `/api/v1/evaluations/{evaluationId}/questions/{questionId}` | Yes |
+| POST | `/api/v1/evaluations/{evaluationId}/submit` | Yes |
+| POST | `/api/v1/evaluations/{evaluationId}/answers` | Yes |
+| POST | `/api/v1/evaluations/{evaluationId}/close` | Yes |
+| GET | `/api/v1/training-sessions/{trainingSessionId}/evaluations` | Yes |
+| GET | `/api/v1/employees/{employeeId}/evaluations` | Yes |
+| GET | `/api/v1/enrollments/{enrollmentId}/evaluations` | Yes |
+| GET | `/api/v1/evaluations/{evaluationId}/result` | Yes |
 
 ## Phase 7 Documentation Status
 
@@ -118,13 +131,31 @@ These endpoints are registered by the application today.
 - `GET /api/v1/employees/{employeeId}/attendance`
 - `GET /api/v1/attendance/{attendanceId}/metrics`
 
+## Phase 10 Documentation Status
+
+- Evaluations: implemented and documented.
+
+### Phase 10 Endpoints Added To OpenAPI
+
+- `GET /api/v1/evaluations`
+- `GET /api/v1/evaluations/{evaluationId}`
+- `POST /api/v1/evaluations`
+- `PUT /api/v1/evaluations/{evaluationId}`
+- `POST /api/v1/evaluations/{evaluationId}/questions`
+- `PUT /api/v1/evaluations/{evaluationId}/questions/{questionId}`
+- `POST /api/v1/evaluations/{evaluationId}/submit`
+- `POST /api/v1/evaluations/{evaluationId}/answers`
+- `POST /api/v1/evaluations/{evaluationId}/close`
+- `GET /api/v1/training-sessions/{trainingSessionId}/evaluations`
+- `GET /api/v1/employees/{employeeId}/evaluations`
+- `GET /api/v1/enrollments/{enrollmentId}/evaluations`
+- `GET /api/v1/evaluations/{evaluationId}/result`
+
 ## Documented But Not Implemented
 
 These paths exist in `docs/api-spec.yml` but do not have Express routes yet.
 
 - `GET /api/v1/roles`
-- `POST /api/v1/evaluations`
-- `POST /api/v1/evaluations/{evaluationId}/responses`
 - `GET /api/v1/certificates`
 - `POST /api/v1/certificates/issue`
 - `GET /api/v1/certificates/verify/{verificationCode}`
@@ -152,8 +183,6 @@ These Express routes are not represented in `docs/api-spec.yml`.
 ## Roadmap Endpoints Still Pending
 
 - `GET /api/v1/roles`
-- `POST /api/v1/evaluations`
-- `POST /api/v1/evaluations/{evaluationId}/responses`
 - `GET /api/v1/certificates`
 - `POST /api/v1/certificates/issue`
 - `GET /api/v1/certificates/verify/{verificationCode}`

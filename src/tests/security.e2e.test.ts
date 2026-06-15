@@ -63,4 +63,15 @@ describe('HTTP security', () => {
       .set('Authorization', `Bearer ${createAccessToken(['courses.read'])}`)
       .expect(403);
   });
+
+  it('rejects evaluations endpoint without JWT', async () => {
+    await request(createApp()).get('/api/v1/evaluations').expect(401);
+  });
+
+  it('rejects evaluations endpoint with insufficient permission', async () => {
+    await request(createApp())
+      .get('/api/v1/evaluations')
+      .set('Authorization', `Bearer ${createAccessToken(['courses.read'])}`)
+      .expect(403);
+  });
 });

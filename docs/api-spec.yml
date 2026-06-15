@@ -1188,9 +1188,50 @@ paths:
                 $ref: '#/components/schemas/AttendanceListResponse'
 
   /evaluations:
+    get:
+      tags: [Evaluations]
+      summary: List evaluations
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.read
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: trainingSessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: enrollmentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: employeeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/EvaluationType'
+      responses:
+        '200':
+          description: Evaluations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationListResponse'
     post:
       tags: [Evaluations]
-      summary: Crea evaluación asociada a una capacitación
+      summary: Create an evaluation for a training session
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.create
       requestBody:
         required: true
         content:
@@ -1199,16 +1240,36 @@ paths:
               $ref: '#/components/schemas/CreateEvaluationRequest'
       responses:
         '201':
-          description: Evaluación creada
+          description: Evaluation created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Evaluation'
 
-  /evaluations/{evaluationId}/responses:
-    post:
+  /evaluations/{evaluationId}:
+    get:
       tags: [Evaluations]
-      summary: Registra respuesta de evaluación de un participante
+      summary: Get an evaluation
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.read
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+      responses:
+        '200':
+          description: Evaluation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+    put:
+      tags: [Evaluations]
+      summary: Update an evaluation
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.update
       parameters:
         - $ref: '#/components/parameters/EvaluationId'
       requestBody:
@@ -1216,14 +1277,207 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateEvaluationResponseRequest'
+              $ref: '#/components/schemas/UpdateEvaluationRequest'
+      responses:
+        '200':
+          description: Evaluation updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+
+  /evaluations/{evaluationId}/questions:
+    post:
+      tags: [Evaluations]
+      summary: Add an evaluation question
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.update
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEvaluationQuestionRequest'
       responses:
         '201':
-          description: Respuesta registrada
+          description: Question created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationQuestion'
+
+  /evaluations/{evaluationId}/questions/{questionId}:
+    put:
+      tags: [Evaluations]
+      summary: Update an evaluation question
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.update
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+        - $ref: '#/components/parameters/QuestionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEvaluationQuestionRequest'
+      responses:
+        '200':
+          description: Question updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationQuestion'
+
+  /evaluations/{evaluationId}/submit:
+    post:
+      tags: [Evaluations]
+      summary: Submit a complete evaluation response
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.submit
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitEvaluationRequest'
+      responses:
+        '201':
+          description: Evaluation submitted
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvaluationResponse'
+
+  /evaluations/{evaluationId}/answers:
+    post:
+      tags: [Evaluations]
+      summary: Submit a single evaluation answer
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.submit
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitEvaluationAnswerRequest'
+      responses:
+        '201':
+          description: Answer submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationAnswer'
+
+  /evaluations/{evaluationId}/close:
+    post:
+      tags: [Evaluations]
+      summary: Close an evaluation
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.close
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+      responses:
+        '200':
+          description: Evaluation closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+
+  /evaluations/{evaluationId}/result:
+    get:
+      tags: [Evaluations]
+      summary: Calculate an evaluation result
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.result
+      parameters:
+        - $ref: '#/components/parameters/EvaluationId'
+        - name: employeeId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Evaluation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResultResponse'
+
+  /training-sessions/{trainingSessionId}/evaluations:
+    get:
+      tags: [Evaluations]
+      summary: List evaluations for a training session
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.read
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      responses:
+        '200':
+          description: Training session evaluations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationListResponse'
+
+  /employees/{employeeId}/evaluations:
+    get:
+      tags: [Evaluations]
+      summary: List evaluations for an employee
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.read
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee evaluations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationListResponse'
+
+  /enrollments/{enrollmentId}/evaluations:
+    get:
+      tags: [Evaluations]
+      summary: List evaluations for an enrollment
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - evaluations.read
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Enrollment evaluations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationListResponse'
 
   /certificates:
     get:
@@ -1576,6 +1830,13 @@ components:
         format: uuid
     EvaluationId:
       name: evaluationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    QuestionId:
+      name: questionId
       in: path
       required: true
       schema:
@@ -2778,14 +3039,44 @@ components:
 
     EvaluationType:
       type: string
-      enum: [KNOWLEDGE_TEST, SATISFACTION_SURVEY, PRACTICAL_ASSESSMENT]
+      enum:
+        - KNOWLEDGE
+        - KNOWLEDGE_TEST
+        - SATISFACTION
+        - SATISFACTION_SURVEY
+        - PRACTICAL
+        - PRACTICAL_ASSESSMENT
+        - DIAGNOSTIC
+
+    EvaluationStatus:
+      type: string
+      enum: [OPEN, CLOSED]
+
+    EvaluationQuestionType:
+      type: string
+      enum: [SINGLE_CHOICE, MULTIPLE_CHOICE, TEXT, NUMERIC, SCALE, BOOLEAN]
+
     Evaluation:
       type: object
-      required: [id, trainingSessionId, type, title]
+      required:
+        - id
+        - organizationId
+        - trainingSessionId
+        - type
+        - title
+        - description
+        - passingScore
+        - status
+        - closedAt
+        - createdAt
+        - updatedAt
       properties:
         id:
           type: string
           format: uuid
+        organizationId:
+          type: string
+          format: uuid
         trainingSessionId:
           type: string
           format: uuid
@@ -2793,17 +3084,179 @@ components:
           $ref: '#/components/schemas/EvaluationType'
         title:
           type: string
+        description:
+          type: string
+          nullable: true
         passingScore:
           type: number
-        questions:
+          nullable: true
+        status:
+          $ref: '#/components/schemas/EvaluationStatus'
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EvaluationQuestion:
+      type: object
+      required:
+        - id
+        - organizationId
+        - evaluationId
+        - type
+        - questionText
+        - options
+        - correctAnswer
+        - points
+        - orderIndex
+        - required
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        evaluationId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/EvaluationQuestionType'
+        questionText:
+          type: string
+        options:
+          nullable: true
+        correctAnswer:
+          nullable: true
+        points:
+          type: number
+          nullable: true
+        orderIndex:
+          type: integer
+        required:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EvaluationAnswer:
+      type: object
+      required:
+        - id
+        - organizationId
+        - evaluationResponseId
+        - evaluationQuestionId
+        - employeeId
+        - answer
+        - score
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        evaluationResponseId:
+          type: string
+          format: uuid
+        evaluationQuestionId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        answer: {}
+        score:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EvaluationResponse:
+      type: object
+      required:
+        - id
+        - organizationId
+        - evaluationId
+        - enrollmentId
+        - employeeId
+        - score
+        - passed
+        - answersPayload
+        - submittedAt
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        evaluationId:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+          nullable: true
+        employeeId:
+          type: string
+          format: uuid
+        score:
+          type: number
+          nullable: true
+          description: Raw score earned by the participant.
+        passed:
+          type: boolean
+          nullable: true
+        answersPayload:
+          nullable: true
+        submittedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EvaluationListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
           type: array
           items:
-            type: object
+            $ref: '#/components/schemas/Evaluation'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
 
     CreateEvaluationRequest:
       type: object
-      required: [trainingSessionId, type, title, questions]
+      required: [organizationId, trainingSessionId, type, title]
       properties:
+        organizationId:
+          type: string
+          format: uuid
         trainingSessionId:
           type: string
           format: uuid
@@ -2811,14 +3264,159 @@ components:
           $ref: '#/components/schemas/EvaluationType'
         title:
           type: string
+        description:
+          type: string
+          nullable: true
         passingScore:
           type: number
-        questions:
+          nullable: true
+
+    UpdateEvaluationRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/EvaluationType'
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        passingScore:
+          type: number
+          nullable: true
+
+    CreateEvaluationQuestionRequest:
+      type: object
+      required: [type, questionText, orderIndex]
+      properties:
+        type:
+          $ref: '#/components/schemas/EvaluationQuestionType'
+        questionText:
+          type: string
+        options:
+          nullable: true
+        correctAnswer:
+          nullable: true
+        points:
+          type: number
+          nullable: true
+        orderIndex:
+          type: integer
+          minimum: 0
+        required:
+          type: boolean
+
+    UpdateEvaluationQuestionRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/EvaluationQuestionType'
+        questionText:
+          type: string
+        options:
+          nullable: true
+        correctAnswer:
+          nullable: true
+        points:
+          type: number
+          nullable: true
+        orderIndex:
+          type: integer
+          minimum: 0
+        required:
+          type: boolean
+
+    SubmitEvaluationAnswerRequest:
+      type: object
+      required: [organizationId, employeeId, evaluationQuestionId, answer]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+          nullable: true
+        employeeId:
+          type: string
+          format: uuid
+        evaluationQuestionId:
+          type: string
+          format: uuid
+        answer: {}
+
+    SubmitEvaluationRequest:
+      type: object
+      required: [organizationId, employeeId, answers]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+          nullable: true
+        employeeId:
+          type: string
+          format: uuid
+        answers:
           type: array
+          minItems: 1
           items:
             type: object
+            required: [evaluationQuestionId, answer]
+            properties:
+              evaluationQuestionId:
+                type: string
+                format: uuid
+              answer: {}
 
-    EvaluationResponse:
+    EvaluationResultResponse:
+      type: object
+      required:
+        - evaluationId
+        - organizationId
+        - enrollmentId
+        - employeeId
+        - score
+        - maxScore
+        - percentage
+        - passed
+        - passingScore
+      properties:
+        evaluationId:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+          nullable: true
+        employeeId:
+          type: string
+          format: uuid
+        score:
+          type: number
+        maxScore:
+          type: number
+        percentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        passed:
+          type: boolean
+        passingScore:
+          type: number
+
+    CreateEvaluationResponseRequest:
+      deprecated: true
+      allOf:
+        - $ref: '#/components/schemas/SubmitEvaluationRequest'
+
+    EvaluationResponseLegacy:
+      deprecated: true
       type: object
       required: [id, evaluationId, employeeId, submittedAt]
       properties:
@@ -2842,18 +3440,6 @@ components:
         submittedAt:
           type: string
           format: date-time
-
-    CreateEvaluationResponseRequest:
-      type: object
-      required: [employeeId, answers]
-      properties:
-        employeeId:
-          type: string
-          format: uuid
-        answers:
-          type: array
-          items:
-            type: object
 
     Certificate:
       type: object

@@ -87,7 +87,12 @@ Entities:
 Purpose:
 - Model evaluations, participant answers, scores, approval, certificates, and verification metadata.
 
-These entities exist in the Prisma schema but are not yet implemented as HTTP modules.
+Implementation status:
+- Evaluations, evaluation questions, evaluation responses, and evaluation answers are implemented as HTTP modules.
+- Evaluations use `closedAt` for logical closing; `deletedAt` remains reserved for soft delete.
+- Evaluation results calculate raw score, max score, percentage, and passed status from question points and submitted answers.
+- The current schema stores raw score in `EvaluationResponse.score`; `maxScore` and `percentage` are returned by the result endpoint but are not persisted as separate columns.
+- Certificates are not implemented yet.
 
 ### SENCE Compliance And Documents
 
@@ -157,10 +162,10 @@ Implemented HTTP modules:
 - Training Sessions
 - Enrollments
 - Attendance
+- Evaluations
 
 Schema-only modules:
 - Providers
-- Evaluations
 - Certificates
 - SENCE declarations
 - Documents

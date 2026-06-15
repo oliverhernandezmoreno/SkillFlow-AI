@@ -5,6 +5,7 @@ import { createAttendanceRouter } from '../../../modules/attendance/interfaces/h
 import { createCourseRouter } from '../../../modules/courses/interfaces/http/routes/course.routes.js';
 import { createEmployeeRouter } from '../../../modules/employees/interfaces/http/routes/employee.routes.js';
 import { createEnrollmentRouter } from '../../../modules/enrollments/interfaces/http/routes/enrollment.routes.js';
+import { createEvaluationRouter } from '../../../modules/evaluations/interfaces/http/routes/evaluation.routes.js';
 import { createInstructorRouter } from '../../../modules/instructors/interfaces/http/routes/instructor.routes.js';
 import { createOrganizationRouter } from '../../../modules/organizations/interfaces/http/routes/organization.routes.js';
 import { createTrainingPlanRouter } from '../../../modules/training-plans/interfaces/http/routes/training-plan.routes.js';
@@ -26,6 +27,7 @@ export function createApiRouter(): Router {
   router.use(createTrainingSessionRouter());
   router.use(createEnrollmentRouter());
   router.use(createAttendanceRouter());
+  router.use(createEvaluationRouter());
 
   return router;
 }

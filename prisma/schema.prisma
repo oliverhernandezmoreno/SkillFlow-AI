@@ -807,6 +807,7 @@ model Evaluation {
   title             String
   description       String?
   passingScore      Decimal?       @map("passing_score") @db.Decimal(5, 2)
+  closedAt          DateTime?      @map("closed_at")
   createdAt         DateTime       @default(now()) @map("created_at")
   updatedAt         DateTime       @updatedAt @map("updated_at")
   deletedAt         DateTime?      @map("deleted_at")
@@ -820,10 +821,12 @@ model Evaluation {
   @@unique([id, organizationId])
   @@index([organizationId])
   @@index([type])
+  @@index([closedAt])
   @@index([createdAt])
   @@index([deletedAt])
   @@index([trainingSessionId])
   @@index([organizationId, createdAt])
+  @@index([organizationId, closedAt])
   @@index([organizationId, deletedAt])
   @@map("evaluations")
 }
