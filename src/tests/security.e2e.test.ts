@@ -85,4 +85,15 @@ describe('HTTP security', () => {
       .set('Authorization', `Bearer ${createAccessToken(['courses.read'])}`)
       .expect(403);
   });
+
+  it('rejects SENCE declarations endpoint without JWT', async () => {
+    await request(createApp()).get('/api/v1/sence/declarations').expect(401);
+  });
+
+  it('rejects SENCE declarations endpoint with insufficient permission', async () => {
+    await request(createApp())
+      .get('/api/v1/sence/declarations')
+      .set('Authorization', `Bearer ${createAccessToken(['courses.read'])}`)
+      .expect(403);
+  });
 });

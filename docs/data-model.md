@@ -107,7 +107,12 @@ Entities:
 Purpose:
 - Track SENCE declarations, related evidence, document metadata, storage keys, and file ownership.
 
-These entities exist in the Prisma schema but are not yet implemented as HTTP modules.
+Implementation status:
+- SENCE declarations and SENCE documents are implemented as HTTP modules for compliance foundation workflows.
+- SENCE submission is a manual local stub. It records `status = SUBMITTED`, `submittedAt`, and `responsePayload.submissionMode = MANUAL_STUB`; it does not call external SENCE APIs.
+- Compliance validation derives attendance, certificate, and evaluation consistency from the training session graph.
+- Evidence generation returns logical DTO metadata for session, participants, attendance, certificates, evaluations, course, and instructor data. It does not generate PDFs or physical files.
+- `Document` remains a metadata/stub model without persistent status.
 
 ### Reporting, Notifications, And Audit
 
@@ -167,10 +172,10 @@ Implemented HTTP modules:
 - Attendance
 - Evaluations
 - Certificates
+- SENCE declarations
 
 Schema-only modules:
 - Providers
-- SENCE declarations
 - Documents
 - Reports
 - Notifications

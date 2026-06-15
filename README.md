@@ -44,6 +44,12 @@ Each business module separates domain entities, application use cases, Prisma re
 - `/api/v1/employees/*`
 - `/api/v1/courses/*`
 - `/api/v1/training-plans/*`
+- `/api/v1/training-sessions/*`
+- `/api/v1/enrollments/*`
+- `/api/v1/attendance/*`
+- `/api/v1/evaluations/*`
+- `/api/v1/certificates/*`
+- `/api/v1/sence/declarations/*`
 
 See `docs/openapi-implementation-report.md` for the current OpenAPI implementation inventory.
 

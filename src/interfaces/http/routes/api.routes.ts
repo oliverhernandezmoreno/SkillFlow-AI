@@ -9,6 +9,7 @@ import { createEnrollmentRouter } from '../../../modules/enrollments/interfaces/
 import { createEvaluationRouter } from '../../../modules/evaluations/interfaces/http/routes/evaluation.routes.js';
 import { createInstructorRouter } from '../../../modules/instructors/interfaces/http/routes/instructor.routes.js';
 import { createOrganizationRouter } from '../../../modules/organizations/interfaces/http/routes/organization.routes.js';
+import { createSenceRouter } from '../../../modules/sence/interfaces/http/routes/sence.routes.js';
 import { createTrainingPlanRouter } from '../../../modules/training-plans/interfaces/http/routes/training-plan.routes.js';
 import { createTrainingSessionRouter } from '../../../modules/training-sessions/interfaces/http/routes/training-session.routes.js';
 import { createUserRouter } from '../../../modules/users/interfaces/http/routes/user.routes.js';
@@ -30,6 +31,7 @@ export function createApiRouter(): Router {
   router.use(createAttendanceRouter());
   router.use(createEvaluationRouter());
   router.use(createCertificateRouter());
+  router.use(createSenceRouter());
 
   return router;
 }

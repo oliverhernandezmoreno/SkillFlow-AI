@@ -1690,23 +1690,40 @@ paths:
   /sence/declarations:
     get:
       tags: [SENCE]
-      summary: Lista declaraciones SENCE
+      summary: List SENCE declarations
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.read
       parameters:
-        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - name: trainingSessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: courseId
+          in: query
+          schema:
+            type: string
+            format: uuid
         - name: status
           in: query
           schema:
             $ref: '#/components/schemas/SenceDeclarationStatus'
       responses:
         '200':
-          description: Declaraciones encontradas
+          description: SENCE declarations found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SenceDeclarationListResponse'
     post:
       tags: [SENCE]
-      summary: Crea declaración SENCE para una capacitación
+      summary: Create a SENCE declaration for a training session
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.create
       requestBody:
         required: true
         content:
@@ -1715,21 +1732,207 @@ paths:
               $ref: '#/components/schemas/CreateSenceDeclarationRequest'
       responses:
         '201':
-          description: Declaración creada
+          description: SENCE declaration created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SenceDeclaration'
 
-  /sence/declarations/{senceDeclarationId}/submit:
-    post:
+  /sence/declarations/{declarationId}:
+    get:
       tags: [SENCE]
-      summary: Marca declaración SENCE como enviada o preparada para integración externa
+      summary: Get a SENCE declaration
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.read
       parameters:
         - $ref: '#/components/parameters/SenceDeclarationId'
       responses:
         '200':
-          description: Declaración enviada
+          description: SENCE declaration found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclaration'
+    put:
+      tags: [SENCE]
+      summary: Update a SENCE declaration
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.update
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSenceDeclarationRequest'
+      responses:
+        '200':
+          description: SENCE declaration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclaration'
+
+  /sence/declarations/{declarationId}/validate:
+    post:
+      tags: [SENCE]
+      summary: Validate SENCE compliance for a declaration
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.validate
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      responses:
+        '200':
+          description: SENCE compliance validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceComplianceValidationResponse'
+
+  /sence/declarations/{declarationId}/evidence:
+    post:
+      tags: [SENCE]
+      summary: Build logical SENCE evidence
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.evidence
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      responses:
+        '200':
+          description: Logical SENCE evidence
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceEvidenceResponse'
+
+  /sence/declarations/{declarationId}/ready:
+    post:
+      tags: [SENCE]
+      summary: Mark a SENCE declaration as ready
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.ready
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      responses:
+        '200':
+          description: SENCE declaration marked ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclaration'
+
+  /sence/declarations/{declarationId}/submit:
+    post:
+      tags: [SENCE]
+      summary: Submit a SENCE declaration manually as a local stub
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.submit
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitSenceDeclarationRequest'
+      responses:
+        '200':
+          description: SENCE declaration submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclaration'
+
+  /sence/declarations/{declarationId}/status:
+    post:
+      tags: [SENCE]
+      summary: Manually update a submitted SENCE declaration status
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.status
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSenceStatusRequest'
+      responses:
+        '200':
+          description: SENCE declaration status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDeclaration'
+
+  /sence/declarations/{declarationId}/documents:
+    post:
+      tags: [SENCE]
+      summary: Attach an evidence document to a SENCE declaration
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.documents
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachSenceDocumentRequest'
+      responses:
+        '201':
+          description: SENCE document attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDocument'
+    get:
+      tags: [SENCE]
+      summary: List evidence documents attached to a SENCE declaration
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.documents
+      parameters:
+        - $ref: '#/components/parameters/SenceDeclarationId'
+      responses:
+        '200':
+          description: SENCE documents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SenceDocumentListResponse'
+
+  /training-sessions/{trainingSessionId}/sence/declaration:
+    get:
+      tags: [SENCE]
+      summary: Get the SENCE declaration for a training session
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - sence.read
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      responses:
+        '200':
+          description: SENCE declaration found for training session
           content:
             application/json:
               schema:
@@ -1985,7 +2188,7 @@ components:
         type: string
         format: uuid
     SenceDeclarationId:
-      name: senceDeclarationId
+      name: declarationId
       in: path
       required: true
       schema:
@@ -3793,7 +3996,7 @@ components:
       enum: [DRAFT, READY, SUBMITTED, ACCEPTED, REJECTED, OBSERVED]
     SenceDeclaration:
       type: object
-      required: [id, organizationId, trainingSessionId, status]
+      required: [id, organizationId, trainingSessionId, status, createdAt, updatedAt]
       properties:
         id:
           type: string
@@ -3806,34 +4009,210 @@ components:
           format: uuid
         senceCode:
           type: string
+          nullable: true
         status:
           $ref: '#/components/schemas/SenceDeclarationStatus'
         declaredAmount:
           type: number
+          nullable: true
         taxCreditAmount:
           type: number
+          nullable: true
+        externalCode:
+          type: string
+          nullable: true
         submittedAt:
           type: string
           format: date-time
+          nullable: true
         responsePayload:
           type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     CreateSenceDeclarationRequest:
       type: object
-      required: [organizationId, trainingSessionId]
+      required: [trainingSessionId]
       properties:
-        organizationId:
-          type: string
-          format: uuid
         trainingSessionId:
           type: string
           format: uuid
         senceCode:
           type: string
+          nullable: true
         declaredAmount:
           type: number
+          nullable: true
         taxCreditAmount:
           type: number
+          nullable: true
+        externalCode:
+          type: string
+          nullable: true
+
+    UpdateSenceDeclarationRequest:
+      type: object
+      properties:
+        senceCode:
+          type: string
+          nullable: true
+        declaredAmount:
+          type: number
+          nullable: true
+        taxCreditAmount:
+          type: number
+          nullable: true
+        externalCode:
+          type: string
+          nullable: true
+
+    SubmitSenceDeclarationRequest:
+      type: object
+      properties:
+        comments:
+          type: string
+          nullable: true
+
+    UpdateSenceStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ACCEPTED, REJECTED, OBSERVED]
+        reason:
+          type: string
+          nullable: true
+        comments:
+          type: string
+          nullable: true
+
+    AttachSenceDocumentRequest:
+      type: object
+      required: [documentId]
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        documentType:
+          type: string
+          nullable: true
+
+    SenceComplianceValidationResponse:
+      type: object
+      required:
+        - valid
+        - statusSuggestion
+        - errors
+        - warnings
+        - participantCount
+        - participantsWithAttendance
+        - participantsWithCertificates
+        - participantsWithEvaluation
+        - missingEvidence
+        - crossTenantIssues
+      properties:
+        valid:
+          type: boolean
+        statusSuggestion:
+          type: string
+          enum: [DRAFT, READY]
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        participantCount:
+          type: integer
+        participantsWithAttendance:
+          type: integer
+        participantsWithCertificates:
+          type: integer
+        participantsWithEvaluation:
+          type: integer
+        averageAttendancePercentage:
+          type: number
+          nullable: true
+        missingEvidence:
+          type: array
+          items:
+            type: string
+        crossTenantIssues:
+          type: array
+          items:
+            type: string
+
+    SenceEvidenceResponse:
+      type: object
+      required: [declarationId, trainingSessionId, evidence]
+      properties:
+        declarationId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        evidence:
+          type: array
+          items:
+            type: object
+            required: [type, metadata]
+            properties:
+              type:
+                type: string
+                enum:
+                  - SESSION_SUMMARY
+                  - PARTICIPANT_LIST
+                  - ATTENDANCE_SUMMARY
+                  - CERTIFICATE_LIST
+                  - EVALUATION_SUMMARY
+                  - COURSE_METADATA
+                  - INSTRUCTOR_METADATA
+              metadata:
+                type: object
+
+    SenceDocument:
+      type: object
+      required: [id, organizationId, senceDeclarationId, documentId, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        senceDeclarationId:
+          type: string
+          format: uuid
+        documentId:
+          type: string
+          format: uuid
+        documentType:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    SenceDocumentListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SenceDocument'
 
     SenceDeclarationListResponse:
       type: object

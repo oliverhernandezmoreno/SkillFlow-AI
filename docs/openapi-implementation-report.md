@@ -181,14 +181,30 @@ These endpoints are registered by the application today.
 
    `Document` does not persist a status field. The `GENERATED` status returned by the certificate document stub is derived in the DTO. A future phase should add persistent states for generated, pending, failed, and revoked documents.
 
+## Phase 12 Documentation Status
+
+- SENCE Compliance Foundation: implemented and documented.
+
+### Phase 12 Endpoints Added To OpenAPI
+
+- `GET /api/v1/sence/declarations`
+- `GET /api/v1/sence/declarations/{declarationId}`
+- `POST /api/v1/sence/declarations`
+- `PUT /api/v1/sence/declarations/{declarationId}`
+- `POST /api/v1/sence/declarations/{declarationId}/validate`
+- `POST /api/v1/sence/declarations/{declarationId}/evidence`
+- `POST /api/v1/sence/declarations/{declarationId}/ready`
+- `POST /api/v1/sence/declarations/{declarationId}/submit`
+- `POST /api/v1/sence/declarations/{declarationId}/status`
+- `POST /api/v1/sence/declarations/{declarationId}/documents`
+- `GET /api/v1/sence/declarations/{declarationId}/documents`
+- `GET /api/v1/training-sessions/{trainingSessionId}/sence/declaration`
+
 ## Documented But Not Implemented
 
 These paths exist in `docs/api-spec.yml` but do not have Express routes yet.
 
 - `GET /api/v1/roles`
-- `GET /api/v1/sence/declarations`
-- `POST /api/v1/sence/declarations`
-- `POST /api/v1/sence/declarations/{senceDeclarationId}/submit`
 - `GET /api/v1/providers`
 - `POST /api/v1/providers`
 - `POST /api/v1/documents`
@@ -210,9 +226,6 @@ These Express routes are not represented in `docs/api-spec.yml`.
 ## Roadmap Endpoints Still Pending
 
 - `GET /api/v1/roles`
-- `GET /api/v1/sence/declarations`
-- `POST /api/v1/sence/declarations`
-- `POST /api/v1/sence/declarations/{senceDeclarationId}/submit`
 - `GET /api/v1/providers`
 - `POST /api/v1/providers`
 - `POST /api/v1/documents`
