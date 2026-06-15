@@ -62,6 +62,16 @@ These endpoints are registered by the application today.
 | POST | `/api/v1/enrollments/{enrollmentId}/complete` | Yes |
 | GET | `/api/v1/training-sessions/{trainingSessionId}/enrollments` | Yes |
 | GET | `/api/v1/employees/{employeeId}/enrollments` | Yes |
+| GET | `/api/v1/attendance` | Yes |
+| POST | `/api/v1/attendance` | Yes |
+| GET | `/api/v1/attendance/{attendanceId}` | Yes |
+| PUT | `/api/v1/attendance/{attendanceId}` | Yes |
+| POST | `/api/v1/attendance/bulk` | Yes |
+| POST | `/api/v1/attendance/{attendanceId}/check-in` | Yes |
+| POST | `/api/v1/attendance/{attendanceId}/check-out` | Yes |
+| GET | `/api/v1/training-sessions/{trainingSessionId}/attendance` | Yes |
+| GET | `/api/v1/employees/{employeeId}/attendance` | Yes |
+| GET | `/api/v1/attendance/{attendanceId}/metrics` | Yes |
 
 ## Phase 7 Documentation Status
 
@@ -91,14 +101,28 @@ These endpoints are registered by the application today.
 - `GET /api/v1/training-sessions/{trainingSessionId}/enrollments`
 - `GET /api/v1/employees/{employeeId}/enrollments`
 
+## Phase 9 Documentation Status
+
+- Attendance: implemented and documented.
+
+### Phase 9 Endpoints Added To OpenAPI
+
+- `GET /api/v1/attendance`
+- `GET /api/v1/attendance/{attendanceId}`
+- `POST /api/v1/attendance`
+- `PUT /api/v1/attendance/{attendanceId}`
+- `POST /api/v1/attendance/bulk`
+- `POST /api/v1/attendance/{attendanceId}/check-in`
+- `POST /api/v1/attendance/{attendanceId}/check-out`
+- `GET /api/v1/training-sessions/{trainingSessionId}/attendance`
+- `GET /api/v1/employees/{employeeId}/attendance`
+- `GET /api/v1/attendance/{attendanceId}/metrics`
+
 ## Documented But Not Implemented
 
 These paths exist in `docs/api-spec.yml` but do not have Express routes yet.
 
 - `GET /api/v1/roles`
-- `POST /api/v1/attendance/check-in`
-- `POST /api/v1/attendance/check-out`
-- `GET /api/v1/attendance/sessions/{trainingSessionId}`
 - `POST /api/v1/evaluations`
 - `POST /api/v1/evaluations/{evaluationId}/responses`
 - `GET /api/v1/certificates`
@@ -128,9 +152,6 @@ These Express routes are not represented in `docs/api-spec.yml`.
 ## Roadmap Endpoints Still Pending
 
 - `GET /api/v1/roles`
-- `POST /api/v1/attendance/check-in`
-- `POST /api/v1/attendance/check-out`
-- `GET /api/v1/attendance/sessions/{trainingSessionId}`
 - `POST /api/v1/evaluations`
 - `POST /api/v1/evaluations/{evaluationId}/responses`
 - `GET /api/v1/certificates`

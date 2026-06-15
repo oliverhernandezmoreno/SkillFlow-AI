@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { createAuthRouter } from '../../../modules/auth/interfaces/http/routes/auth.routes.js';
+import { createAttendanceRouter } from '../../../modules/attendance/interfaces/http/routes/attendance.routes.js';
 import { createCourseRouter } from '../../../modules/courses/interfaces/http/routes/course.routes.js';
 import { createEmployeeRouter } from '../../../modules/employees/interfaces/http/routes/employee.routes.js';
 import { createEnrollmentRouter } from '../../../modules/enrollments/interfaces/http/routes/enrollment.routes.js';
@@ -24,6 +25,7 @@ export function createApiRouter(): Router {
   router.use(createInstructorRouter());
   router.use(createTrainingSessionRouter());
   router.use(createEnrollmentRouter());
+  router.use(createAttendanceRouter());
 
   return router;
 }

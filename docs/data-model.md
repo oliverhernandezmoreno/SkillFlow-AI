@@ -71,7 +71,9 @@ Entities:
 Purpose:
 - Schedule training sessions, enroll employees, and register attendance evidence.
 
-These entities exist in the Prisma schema but are not yet implemented as HTTP modules.
+Implementation status:
+- Training sessions, enrollments, and attendance records are implemented as HTTP modules.
+- Attendance metrics are calculated from `checkInAt`, `checkOutAt`, and the session duration. The current schema does not persist calculated attendance minutes or percentage.
 
 ### Assessment And Certification
 
@@ -154,10 +156,10 @@ Implemented HTTP modules:
 - Instructors
 - Training Sessions
 - Enrollments
+- Attendance
 
 Schema-only modules:
 - Providers
-- Attendance
 - Evaluations
 - Certificates
 - SENCE declarations

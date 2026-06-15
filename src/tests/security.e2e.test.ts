@@ -52,4 +52,15 @@ describe('HTTP security', () => {
       .set('Authorization', `Bearer ${createAccessToken(['courses.read'])}`)
       .expect(403);
   });
+
+  it('rejects attendance endpoint without JWT', async () => {
+    await request(createApp()).get('/api/v1/attendance').expect(401);
+  });
+
+  it('rejects attendance endpoint with insufficient permission', async () => {
+    await request(createApp())
+      .get('/api/v1/attendance')
+      .set('Authorization', `Bearer ${createAccessToken(['courses.read'])}`)
+      .expect(403);
+  });
 });

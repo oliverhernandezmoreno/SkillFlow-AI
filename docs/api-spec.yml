@@ -974,57 +974,218 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnrollmentListResponse'
 
-  /attendance/check-in:
-    post:
-      tags: [Attendance]
-      summary: Registra asistencia de entrada mediante QR, firma o registro manual
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AttendanceCheckInRequest'
-      responses:
-        '201':
-          description: Asistencia registrada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AttendanceRecord'
-
-  /attendance/check-out:
-    post:
-      tags: [Attendance]
-      summary: Registra salida de participante
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AttendanceCheckOutRequest'
-      responses:
-        '200':
-          description: Salida registrada
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AttendanceRecord'
-
-  /attendance/sessions/{trainingSessionId}:
+  /attendance:
     get:
       tags: [Attendance]
-      summary: Obtiene asistencia de una capacitación
+      summary: List attendance records
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.read
       parameters:
-        - $ref: '#/components/parameters/TrainingSessionId'
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: enrollmentId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: trainingSessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: employeeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AttendanceStatus'
       responses:
         '200':
-          description: Asistencia por sesión
+          description: Attendance records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceListResponse'
+    post:
+      tags: [Attendance]
+      summary: Create a manual attendance record
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAttendanceRequest'
+      responses:
+        '201':
+          description: Attendance record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceResponse'
+
+  /attendance/{attendanceId}:
+    get:
+      tags: [Attendance]
+      summary: Get an attendance record
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.read
+      parameters:
+        - $ref: '#/components/parameters/AttendanceId'
+      responses:
+        '200':
+          description: Attendance record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceResponse'
+    put:
+      tags: [Attendance]
+      summary: Update an attendance record
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.update
+      parameters:
+        - $ref: '#/components/parameters/AttendanceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAttendanceRequest'
+      responses:
+        '200':
+          description: Attendance record updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceResponse'
+
+  /attendance/bulk:
+    post:
+      tags: [Attendance]
+      summary: Create attendance records in bulk
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.bulk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkAttendanceRequest'
+      responses:
+        '201':
+          description: Attendance records created
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AttendanceRecord'
+                  $ref: '#/components/schemas/AttendanceResponse'
+
+  /attendance/{attendanceId}/check-in:
+    post:
+      tags: [Attendance]
+      summary: Check in an attendance record
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.checkin
+      parameters:
+        - $ref: '#/components/parameters/AttendanceId'
+      responses:
+        '200':
+          description: Attendance record checked in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceResponse'
+
+  /attendance/{attendanceId}/check-out:
+    post:
+      tags: [Attendance]
+      summary: Check out an attendance record
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.checkout
+      parameters:
+        - $ref: '#/components/parameters/AttendanceId'
+      responses:
+        '200':
+          description: Attendance record checked out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceResponse'
+
+  /attendance/{attendanceId}/metrics:
+    get:
+      tags: [Attendance]
+      summary: Calculate attendance metrics
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.metrics
+      parameters:
+        - $ref: '#/components/parameters/AttendanceId'
+      responses:
+        '200':
+          description: Attendance metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceMetricsResponse'
+
+  /training-sessions/{trainingSessionId}/attendance:
+    get:
+      tags: [Attendance]
+      summary: List attendance records for a training session
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.read
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      responses:
+        '200':
+          description: Training session attendance records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceListResponse'
+
+  /employees/{employeeId}/attendance:
+    get:
+      tags: [Attendance]
+      summary: List attendance records for an employee
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - attendance.read
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee attendance records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceListResponse'
 
   /evaluations:
     post:
@@ -1401,6 +1562,13 @@ components:
         format: uuid
     EnrollmentId:
       name: enrollmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AttendanceId:
+      name: attendanceId
       in: path
       required: true
       schema:
@@ -2364,11 +2532,35 @@ components:
     AttendanceMethod:
       type: string
       enum: [QR, DIGITAL_SIGNATURE, MANUAL, BIOMETRIC]
+
+    AttendanceStatus:
+      type: string
+      enum: [PRESENT, ABSENT, LATE, EXCUSED, INCOMPLETE]
+
     AttendanceRecord:
       type: object
-      required: [id, enrollmentId, trainingSessionId, employeeId, method, checkInAt]
+      required:
+        - id
+        - organizationId
+        - enrollmentId
+        - trainingSessionId
+        - employeeId
+        - method
+        - status
+        - checkInAt
+        - checkOutAt
+        - evidenceDocumentId
+        - qrToken
+        - signatureStorageKey
+        - latitude
+        - longitude
+        - createdAt
+        - updatedAt
       properties:
         id:
+          type: string
+          format: uuid
+        organizationId:
           type: string
           format: uuid
         enrollmentId:
@@ -2382,45 +2574,207 @@ components:
           format: uuid
         method:
           $ref: '#/components/schemas/AttendanceMethod'
+        status:
+          $ref: '#/components/schemas/AttendanceStatus'
         checkInAt:
           type: string
           format: date-time
+          nullable: true
         checkOutAt:
           type: string
           format: date-time
+          nullable: true
         evidenceDocumentId:
           type: string
           format: uuid
+          nullable: true
+        qrToken:
+          type: string
+          nullable: true
+        signatureStorageKey:
+          type: string
+          nullable: true
         latitude:
           type: number
+          nullable: true
         longitude:
           type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
-    AttendanceCheckInRequest:
+    AttendanceResponse:
+      $ref: '#/components/schemas/AttendanceRecord'
+
+    CreateAttendanceRequest:
       type: object
-      required: [enrollmentId, method]
+      required: [organizationId, enrollmentId, trainingSessionId, employeeId, status]
       properties:
+        organizationId:
+          type: string
+          format: uuid
         enrollmentId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        employeeId:
           type: string
           format: uuid
         method:
           $ref: '#/components/schemas/AttendanceMethod'
-        qrToken:
+        status:
+          $ref: '#/components/schemas/AttendanceStatus'
+        checkInAt:
           type: string
-        signatureBase64:
+          format: date-time
+          nullable: true
+        checkOutAt:
           type: string
-        latitude:
-          type: number
-        longitude:
-          type: number
-
-    AttendanceCheckOutRequest:
-      type: object
-      required: [attendanceRecordId]
-      properties:
-        attendanceRecordId:
+          format: date-time
+          nullable: true
+        evidenceDocumentId:
           type: string
           format: uuid
+          nullable: true
+        qrToken:
+          type: string
+          nullable: true
+        signatureStorageKey:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+
+    UpdateAttendanceRequest:
+      type: object
+      properties:
+        method:
+          $ref: '#/components/schemas/AttendanceMethod'
+        status:
+          $ref: '#/components/schemas/AttendanceStatus'
+        checkInAt:
+          type: string
+          format: date-time
+          nullable: true
+        checkOutAt:
+          type: string
+          format: date-time
+          nullable: true
+        evidenceDocumentId:
+          type: string
+          format: uuid
+          nullable: true
+        qrToken:
+          type: string
+          nullable: true
+        signatureStorageKey:
+          type: string
+          nullable: true
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+
+    BulkAttendanceRequest:
+      type: object
+      required: [organizationId, trainingSessionId, records]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        records:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [enrollmentId, employeeId, status]
+            properties:
+              enrollmentId:
+                type: string
+                format: uuid
+              employeeId:
+                type: string
+                format: uuid
+              status:
+                $ref: '#/components/schemas/AttendanceStatus'
+              method:
+                $ref: '#/components/schemas/AttendanceMethod'
+              checkInAt:
+                type: string
+                format: date-time
+                nullable: true
+              checkOutAt:
+                type: string
+                format: date-time
+                nullable: true
+
+    AttendanceMetricsResponse:
+      type: object
+      required:
+        - attendanceId
+        - organizationId
+        - enrollmentId
+        - trainingSessionId
+        - employeeId
+        - attendanceMinutes
+        - sessionMinutes
+        - attendancePercentage
+        - band
+      properties:
+        attendanceId:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        employeeId:
+          type: string
+          format: uuid
+        attendanceMinutes:
+          type: integer
+          minimum: 0
+        sessionMinutes:
+          type: integer
+          minimum: 0
+        attendancePercentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        band:
+          type: string
+          enum: [FULL, HIGH, MEDIUM, LOW]
+
+    AttendanceListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttendanceRecord'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
 
     EvaluationType:
       type: string
