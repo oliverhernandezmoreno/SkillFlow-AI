@@ -776,8 +776,14 @@ paths:
     get:
       tags: [Enrollments]
       summary: Lista inscripciones
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.read
       parameters:
         - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
         - name: trainingSessionId
           in: query
           schema:
@@ -802,6 +808,10 @@ paths:
     post:
       tags: [Enrollments]
       summary: Inscribe trabajador a una capacitación
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.create
       requestBody:
         required: true
         content:
@@ -817,9 +827,29 @@ paths:
                 $ref: '#/components/schemas/Enrollment'
 
   /enrollments/{enrollmentId}:
-    patch:
+    get:
+      tags: [Enrollments]
+      summary: Obtiene una inscripción
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.read
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Inscripción encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+    put:
       tags: [Enrollments]
       summary: Actualiza estado de inscripción
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.update
       parameters:
         - $ref: '#/components/parameters/EnrollmentId'
       requestBody:
@@ -835,6 +865,114 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Enrollment'
+
+  /enrollments/{enrollmentId}/confirm:
+    post:
+      tags: [Enrollments]
+      summary: Confirma una inscripción
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.confirm
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Inscripción confirmada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+
+  /enrollments/{enrollmentId}/reject:
+    post:
+      tags: [Enrollments]
+      summary: Rechaza una inscripción
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.reject
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Inscripción rechazada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+
+  /enrollments/{enrollmentId}/cancel:
+    post:
+      tags: [Enrollments]
+      summary: Cancela una inscripción y promueve lista de espera si corresponde
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.cancel
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Inscripción cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+
+  /enrollments/{enrollmentId}/complete:
+    post:
+      tags: [Enrollments]
+      summary: Marca una inscripción como completada
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.complete
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Inscripción completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+
+  /training-sessions/{trainingSessionId}/enrollments:
+    get:
+      tags: [Enrollments]
+      summary: Lista inscripciones de una sesión de capacitación
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.read
+      parameters:
+        - $ref: '#/components/parameters/TrainingSessionId'
+      responses:
+        '200':
+          description: Inscripciones de la sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentListResponse'
+
+  /employees/{employeeId}/enrollments:
+    get:
+      tags: [Enrollments]
+      summary: Lista inscripciones de un trabajador
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - enrollments.read
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Inscripciones del trabajador
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentListResponse'
 
   /attendance/check-in:
     post:
@@ -2147,10 +2285,10 @@ components:
 
     EnrollmentStatus:
       type: string
-      enum: [PENDING, CONFIRMED, WAITLISTED, CANCELLED, COMPLETED, FAILED]
+      enum: [PENDING, CONFIRMED, WAITLISTED, ENROLLED, CANCELLED, COMPLETED, FAILED]
     Enrollment:
       type: object
-      required: [id, organizationId, trainingSessionId, employeeId, status]
+      required: [id, organizationId, trainingSessionId, employeeId, status, enrolledAt, createdAt, updatedAt]
       properties:
         id:
           type: string
@@ -2175,6 +2313,12 @@ components:
           type: number
         approved:
           type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
     CreateEnrollmentRequest:
       type: object
@@ -2195,8 +2339,14 @@ components:
       properties:
         status:
           $ref: '#/components/schemas/EnrollmentStatus'
+        completionPercentage:
+          type: number
+          minimum: 0
+          maximum: 100
         finalScore:
           type: number
+          minimum: 0
+          maximum: 100
         approved:
           type: boolean
 

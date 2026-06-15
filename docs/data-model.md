@@ -153,10 +153,10 @@ Implemented HTTP modules:
 - Training Plans
 - Instructors
 - Training Sessions
+- Enrollments
 
 Schema-only modules:
 - Providers
-- Enrollments
 - Attendance
 - Evaluations
 - Certificates
