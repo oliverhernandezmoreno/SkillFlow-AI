@@ -151,14 +151,41 @@ These endpoints are registered by the application today.
 - `GET /api/v1/enrollments/{enrollmentId}/evaluations`
 - `GET /api/v1/evaluations/{evaluationId}/result`
 
+## Phase 11 Documentation Status
+
+- Certificates: implemented and documented.
+
+### Phase 11 Endpoints Added To OpenAPI
+
+- `GET /api/v1/certificates`
+- `GET /api/v1/certificates/{certificateId}`
+- `POST /api/v1/certificates/eligibility`
+- `POST /api/v1/certificates`
+- `POST /api/v1/certificates/{certificateId}/revoke`
+- `GET /api/v1/employees/{employeeId}/certificates`
+- `GET /api/v1/enrollments/{enrollmentId}/certificates`
+- `POST /api/v1/certificates/{certificateId}/document`
+- `GET /api/v1/certificates/verify/{verificationCode}`
+
+## Known Technical Risks - Certificates
+
+1. Certificate Number Concurrency
+
+   The `certificateNumber` generation can have a race condition under concurrent issuance. The current global unique index protects against duplicate persisted certificate numbers, but a future phase must implement transactional sequence serialization per organization and year.
+
+2. Course Certificate Rules
+
+   `Course` does not persist `attendanceThreshold` or `requiresEvaluation` fields. Certificates currently use `CERTIFICATE_MIN_ATTENDANCE_PERCENTAGE=75` and a conservative rule based on existing evaluations for the training session.
+
+3. Document Status
+
+   `Document` does not persist a status field. The `GENERATED` status returned by the certificate document stub is derived in the DTO. A future phase should add persistent states for generated, pending, failed, and revoked documents.
+
 ## Documented But Not Implemented
 
 These paths exist in `docs/api-spec.yml` but do not have Express routes yet.
 
 - `GET /api/v1/roles`
-- `GET /api/v1/certificates`
-- `POST /api/v1/certificates/issue`
-- `GET /api/v1/certificates/verify/{verificationCode}`
 - `GET /api/v1/sence/declarations`
 - `POST /api/v1/sence/declarations`
 - `POST /api/v1/sence/declarations/{senceDeclarationId}/submit`
@@ -183,9 +210,6 @@ These Express routes are not represented in `docs/api-spec.yml`.
 ## Roadmap Endpoints Still Pending
 
 - `GET /api/v1/roles`
-- `GET /api/v1/certificates`
-- `POST /api/v1/certificates/issue`
-- `GET /api/v1/certificates/verify/{verificationCode}`
 - `GET /api/v1/sence/declarations`
 - `POST /api/v1/sence/declarations`
 - `POST /api/v1/sence/declarations/{senceDeclarationId}/submit`

@@ -108,6 +108,20 @@ npx prisma validate
 
 The CI workflow in `.github/workflows/backend-ci.yml` runs the same backend gate on pushes and pull requests.
 
+## Known Technical Risks - Certificates
+
+1. Certificate Number Concurrency
+
+   The `certificateNumber` generation can have a race condition under concurrent issuance. The current global unique index protects against duplicate persisted certificate numbers, but a future phase must implement transactional sequence serialization per organization and year.
+
+2. Course Certificate Rules
+
+   `Course` does not persist `attendanceThreshold` or `requiresEvaluation` fields. Certificates currently use `CERTIFICATE_MIN_ATTENDANCE_PERCENTAGE=75` and a conservative rule based on existing evaluations for the training session.
+
+3. Document Status
+
+   `Document` does not persist a status field. The `GENERATED` status returned by the certificate document stub is derived in the DTO. A future phase should add persistent states for generated, pending, failed, and revoked documents.
+
 ## Docker
 
 `docker-compose.yml` starts PostgreSQL for local development:

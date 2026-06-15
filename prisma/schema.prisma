@@ -933,6 +933,8 @@ model Certificate {
   status            CertificateStatus @default(ISSUED)
   issuedAt          DateTime          @default(now()) @map("issued_at")
   expiresAt         DateTime?         @map("expires_at") @db.Date
+  revokedAt         DateTime?         @map("revoked_at")
+  revokedReason     String?           @map("revoked_reason")
   fileUrl           String?           @map("file_url")
   documentId        String?           @map("document_id") @db.Uuid
   createdAt         DateTime          @default(now()) @map("created_at")
@@ -961,6 +963,7 @@ model Certificate {
   @@index([trainingSessionId])
   @@index([documentId])
   @@index([issuedAt])
+  @@index([revokedAt])
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
   @@index([organizationId, deletedAt])

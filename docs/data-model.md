@@ -92,7 +92,10 @@ Implementation status:
 - Evaluations use `closedAt` for logical closing; `deletedAt` remains reserved for soft delete.
 - Evaluation results calculate raw score, max score, percentage, and passed status from question points and submitted answers.
 - The current schema stores raw score in `EvaluationResponse.score`; `maxScore` and `percentage` are returned by the result endpoint but are not persisted as separate columns.
-- Certificates are not implemented yet.
+- Certificates are implemented as an HTTP module and are issued only when enrollment, attendance, and evaluation eligibility rules pass.
+- Certificate revocation uses `status = REVOKED`, `revokedAt`, and `revokedReason`; `deletedAt` remains reserved for administrative soft delete.
+- Certificate verification is public and returns limited certificate metadata without sensitive employee PII.
+- Certificate document generation currently creates `Document` metadata with a local stub storage key; real PDF rendering and cloud storage are intentionally pending.
 
 ### SENCE Compliance And Documents
 
@@ -163,10 +166,10 @@ Implemented HTTP modules:
 - Enrollments
 - Attendance
 - Evaluations
+- Certificates
 
 Schema-only modules:
 - Providers
-- Certificates
 - SENCE declarations
 - Documents
 - Reports

@@ -2,6 +2,7 @@ import { Router } from 'express';
 
 import { createAuthRouter } from '../../../modules/auth/interfaces/http/routes/auth.routes.js';
 import { createAttendanceRouter } from '../../../modules/attendance/interfaces/http/routes/attendance.routes.js';
+import { createCertificateRouter } from '../../../modules/certificates/interfaces/http/routes/certificate.routes.js';
 import { createCourseRouter } from '../../../modules/courses/interfaces/http/routes/course.routes.js';
 import { createEmployeeRouter } from '../../../modules/employees/interfaces/http/routes/employee.routes.js';
 import { createEnrollmentRouter } from '../../../modules/enrollments/interfaces/http/routes/enrollment.routes.js';
@@ -28,6 +29,7 @@ export function createApiRouter(): Router {
   router.use(createEnrollmentRouter());
   router.use(createAttendanceRouter());
   router.use(createEvaluationRouter());
+  router.use(createCertificateRouter());
 
   return router;
 }

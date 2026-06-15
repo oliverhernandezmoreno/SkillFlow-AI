@@ -1482,54 +1482,160 @@ paths:
   /certificates:
     get:
       tags: [Certificates]
-      summary: Lista certificados emitidos
+      summary: List issued certificates
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.read
       parameters:
-        - $ref: '#/components/parameters/OrganizationIdQuery'
         - name: employeeId
           in: query
           schema:
             type: string
             format: uuid
-        - name: courseId
+        - name: enrollmentId
           in: query
           schema:
             type: string
             format: uuid
+        - name: trainingSessionId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/CertificateStatus'
       responses:
         '200':
-          description: Certificados encontrados
+          description: Certificates found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/CertificateListResponse'
-
-  /certificates/issue:
     post:
       tags: [Certificates]
-      summary: Emite certificado para inscripción aprobada
+      summary: Issue a certificate when eligibility requirements are met
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.issue
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [enrollmentId]
-              properties:
-                enrollmentId:
-                  type: string
-                  format: uuid
+              $ref: '#/components/schemas/IssueCertificateRequest'
       responses:
         '201':
-          description: Certificado emitido
+          description: Certificate issued
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Certificate'
 
+  /certificates/eligibility:
+    post:
+      tags: [Certificates]
+      summary: Check whether an enrollment is eligible for certificate issuance
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.issue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueCertificateRequest'
+      responses:
+        '200':
+          description: Certificate eligibility
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateEligibilityResponse'
+
+  /certificates/{certificateId}:
+    get:
+      tags: [Certificates]
+      summary: Get a certificate
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.read
+      parameters:
+        - name: certificateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Certificate found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certificate'
+
+  /certificates/{certificateId}/revoke:
+    post:
+      tags: [Certificates]
+      summary: Revoke an issued certificate
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.revoke
+      parameters:
+        - name: certificateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RevokeCertificateRequest'
+      responses:
+        '200':
+          description: Certificate revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Certificate'
+
+  /certificates/{certificateId}/document:
+    post:
+      tags: [Certificates]
+      summary: Generate certificate document metadata
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.document
+      parameters:
+        - name: certificateId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Certificate document metadata generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDocumentResponse'
+
   /certificates/verify/{verificationCode}:
     get:
       tags: [Certificates]
-      summary: Verifica públicamente la validez de un certificado
+      summary: Publicly verify a certificate by verification code
       security: []
       parameters:
         - name: verificationCode
@@ -1539,11 +1645,47 @@ paths:
             type: string
       responses:
         '200':
-          description: Certificado válido
+          description: Certificate verification result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CertificateVerification'
+                $ref: '#/components/schemas/CertificateVerificationResponse'
+
+  /employees/{employeeId}/certificates:
+    get:
+      tags: [Certificates]
+      summary: List certificates for an employee
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.read
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee certificates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateListResponse'
+
+  /enrollments/{enrollmentId}/certificates:
+    get:
+      tags: [Certificates]
+      summary: List certificates for an enrollment
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - certificates.read
+      parameters:
+        - $ref: '#/components/parameters/EnrollmentId'
+      responses:
+        '200':
+          description: Enrollment certificates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateListResponse'
 
   /sence/declarations:
     get:
@@ -3443,40 +3585,197 @@ components:
 
     Certificate:
       type: object
-      required: [id, enrollmentId, verificationCode, issuedAt]
+      required:
+        - id
+        - organizationId
+        - enrollmentId
+        - employeeId
+        - courseId
+        - trainingSessionId
+        - certificateNumber
+        - verificationCode
+        - status
+        - issuedAt
+        - createdAt
+        - updatedAt
       properties:
         id:
+          type: string
+          format: uuid
+        organizationId:
           type: string
           format: uuid
         enrollmentId:
           type: string
           format: uuid
+          nullable: true
         employeeId:
           type: string
           format: uuid
         courseId:
           type: string
           format: uuid
+        trainingSessionId:
+          type: string
+          format: uuid
+        certificateNumber:
+          type: string
         verificationCode:
           type: string
-        fileUrl:
-          type: string
-          format: uri
+          format: uuid
+        status:
+          $ref: '#/components/schemas/CertificateStatus'
         issuedAt:
           type: string
           format: date-time
         expiresAt:
           type: string
-          format: date
+          format: date-time
+          nullable: true
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+        revokedReason:
+          type: string
+          nullable: true
+        fileUrl:
+          type: string
+          format: uri
+          nullable: true
+        documentId:
+          type: string
+          format: uuid
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
 
-    CertificateVerification:
+    CertificateStatus:
+      type: string
+      enum: [DRAFT, ISSUED, REVOKED, EXPIRED]
+
+    IssueCertificateRequest:
       type: object
-      required: [valid, certificate]
+      required: [enrollmentId]
+      properties:
+        enrollmentId:
+          type: string
+          format: uuid
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    RevokeCertificateRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+
+    CertificateEligibilityResponse:
+      type: object
+      required:
+        - eligible
+        - reasons
+        - minimumAttendancePercentage
+        - evaluationRequired
+      properties:
+        eligible:
+          type: boolean
+        reasons:
+          type: array
+          items:
+            type: string
+        attendancePercentage:
+          type: number
+          nullable: true
+        minimumAttendancePercentage:
+          type: number
+        evaluationRequired:
+          type: boolean
+        evaluationPassed:
+          type: boolean
+          nullable: true
+        evaluationScore:
+          type: number
+          nullable: true
+        enrollmentStatus:
+          type: string
+          nullable: true
+        courseId:
+          type: string
+          format: uuid
+          nullable: true
+        employeeId:
+          type: string
+          format: uuid
+          nullable: true
+        trainingSessionId:
+          type: string
+          format: uuid
+          nullable: true
+
+    CertificateVerificationResponse:
+      type: object
+      required: [valid, status, certificateNumber, issuedAt, expiresAt, courseId, trainingSessionId]
       properties:
         valid:
           type: boolean
-        certificate:
-          $ref: '#/components/schemas/Certificate'
+        status:
+          allOf:
+            - $ref: '#/components/schemas/CertificateStatus'
+          nullable: true
+        certificateNumber:
+          type: string
+          nullable: true
+        issuedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        courseId:
+          type: string
+          format: uuid
+          nullable: true
+        trainingSessionId:
+          type: string
+          format: uuid
+          nullable: true
+
+    CertificateDocumentResponse:
+      type: object
+      required: [id, certificateId, fileName, mimeType, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        certificateId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+          format: uri
+          nullable: true
+        mimeType:
+          type: string
+        storageKey:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [GENERATED]
 
     CertificateListResponse:
       type: object
