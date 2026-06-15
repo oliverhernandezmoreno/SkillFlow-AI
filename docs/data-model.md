@@ -151,10 +151,11 @@ Implemented HTTP modules:
 - Employees
 - Courses
 - Training Plans
+- Instructors
+- Training Sessions
 
 Schema-only modules:
-- Providers and instructors
-- Training sessions
+- Providers
 - Enrollments
 - Attendance
 - Evaluations

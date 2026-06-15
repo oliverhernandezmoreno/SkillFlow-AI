@@ -43,6 +43,8 @@ tags:
     description: Plan anual de capacitación PAC y planificación presupuestaria.
   - name: TrainingSessions
     description: Ejecución de cursos, clases, agenda, salas y relatores.
+  - name: Instructors
+    description: Relatores internos y externos disponibles para ejecutar capacitaciones.
   - name: Enrollments
     description: Inscripciones, estados, cupos y trazabilidad.
   - name: Attendance
@@ -567,8 +569,14 @@ paths:
     get:
       tags: [TrainingSessions]
       summary: Lista ejecuciones o instancias de capacitación
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - training_sessions.read
       parameters:
         - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
         - name: courseId
           in: query
           schema:
@@ -598,6 +606,10 @@ paths:
     post:
       tags: [TrainingSessions]
       summary: Programa una instancia de capacitación
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - training_sessions.create
       requestBody:
         required: true
         content:
@@ -616,6 +628,10 @@ paths:
     get:
       tags: [TrainingSessions]
       summary: Obtiene una instancia de capacitación
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - training_sessions.read
       parameters:
         - $ref: '#/components/parameters/TrainingSessionId'
       responses:
@@ -628,6 +644,10 @@ paths:
     patch:
       tags: [TrainingSessions]
       summary: Actualiza una instancia de capacitación
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - training_sessions.update
       parameters:
         - $ref: '#/components/parameters/TrainingSessionId'
       requestBody:
@@ -648,6 +668,10 @@ paths:
     post:
       tags: [TrainingSessions]
       summary: Publica una capacitación y habilita inscripciones
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - training_sessions.publish
       parameters:
         - $ref: '#/components/parameters/TrainingSessionId'
       responses:
@@ -657,6 +681,96 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TrainingSession'
+
+  /instructors:
+    get:
+      tags: [Instructors]
+      summary: Lista relatores de una organización
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - instructors.read
+      parameters:
+        - $ref: '#/components/parameters/OrganizationIdQuery'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/Search'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InstructorStatus'
+        - name: providerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Relatores paginados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstructorListResponse'
+    post:
+      tags: [Instructors]
+      summary: Crea un relator
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - instructors.create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInstructorRequest'
+      responses:
+        '201':
+          description: Relator creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instructor'
+
+  /instructors/{instructorId}:
+    get:
+      tags: [Instructors]
+      summary: Obtiene un relator
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - instructors.read
+      parameters:
+        - $ref: '#/components/parameters/InstructorId'
+      responses:
+        '200':
+          description: Relator encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instructor'
+    patch:
+      tags: [Instructors]
+      summary: Actualiza un relator
+      security:
+        - bearerAuth: []
+      x-permissions:
+        - instructors.update
+      parameters:
+        - $ref: '#/components/parameters/InstructorId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInstructorRequest'
+      responses:
+        '200':
+          description: Relator actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Instructor'
 
   /enrollments:
     get:
@@ -1135,6 +1249,13 @@ components:
         format: uuid
     TrainingSessionId:
       name: trainingSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    InstructorId:
+      name: instructorId
       in: path
       required: true
       schema:
@@ -1777,10 +1898,10 @@ components:
 
     TrainingSessionStatus:
       type: string
-      enum: [DRAFT, PUBLISHED, IN_PROGRESS, COMPLETED, CANCELLED]
+      enum: [DRAFT, SCHEDULED, PUBLISHED, IN_PROGRESS, COMPLETED, CANCELLED, CLOSED]
     TrainingSession:
       type: object
-      required: [id, organizationId, courseId, name, startDate, endDate, status]
+      required: [id, organizationId, courseId, name, startDate, endDate, capacity, status, createdAt, updatedAt]
       properties:
         id:
           type: string
@@ -1828,7 +1949,7 @@ components:
 
     CreateTrainingSessionRequest:
       type: object
-      required: [organizationId, courseId, name, startDate, endDate]
+      required: [organizationId, courseId, name, startDate, endDate, capacity]
       properties:
         organizationId:
           type: string
@@ -1864,9 +1985,39 @@ components:
           format: uri
 
     UpdateTrainingSessionRequest:
-      allOf:
-        - $ref: '#/components/schemas/CreateTrainingSessionRequest'
+      type: object
       properties:
+        courseId:
+          type: string
+          format: uuid
+        trainingPlanItemId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        providerId:
+          type: string
+          format: uuid
+        instructorId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        location:
+          type: string
+        capacity:
+          type: integer
+          minimum: 1
+        costAmount:
+          type: number
+          minimum: 0
+        meetingUrl:
+          type: string
+          format: uri
         status:
           $ref: '#/components/schemas/TrainingSessionStatus'
 
@@ -1878,6 +2029,119 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TrainingSession'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    InstructorStatus:
+      type: string
+      enum: [ACTIVE, INACTIVE, BLOCKED]
+    Instructor:
+      type: object
+      required: [id, organizationId, firstName, lastName, specialties, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        providerId:
+          type: string
+          format: uuid
+        rut:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        normalizedEmail:
+          type: string
+          format: email
+        phone:
+          type: string
+        specialties:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/InstructorStatus'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateInstructorRequest:
+      type: object
+      required: [organizationId, firstName, lastName]
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        providerId:
+          type: string
+          format: uuid
+        rut:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        specialties:
+          type: array
+          items:
+            type: string
+
+    UpdateInstructorRequest:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        providerId:
+          type: string
+          format: uuid
+        rut:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        specialties:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/InstructorStatus'
+
+    InstructorListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Instructor'
         meta:
           $ref: '#/components/schemas/PaginationMeta'
 

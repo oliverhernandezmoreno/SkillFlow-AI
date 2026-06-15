@@ -59,7 +59,7 @@ El backend debe cumplir los siguientes principios:
 ## 3. Arquitectura base
 
 ```text
-backend/
+/
 ├── prisma/
 │   ├── schema.prisma
 │   └── migrations/

@@ -3,8 +3,10 @@ import { Router } from 'express';
 import { createAuthRouter } from '../../../modules/auth/interfaces/http/routes/auth.routes.js';
 import { createCourseRouter } from '../../../modules/courses/interfaces/http/routes/course.routes.js';
 import { createEmployeeRouter } from '../../../modules/employees/interfaces/http/routes/employee.routes.js';
+import { createInstructorRouter } from '../../../modules/instructors/interfaces/http/routes/instructor.routes.js';
 import { createOrganizationRouter } from '../../../modules/organizations/interfaces/http/routes/organization.routes.js';
 import { createTrainingPlanRouter } from '../../../modules/training-plans/interfaces/http/routes/training-plan.routes.js';
+import { createTrainingSessionRouter } from '../../../modules/training-sessions/interfaces/http/routes/training-session.routes.js';
 import { createUserRouter } from '../../../modules/users/interfaces/http/routes/user.routes.js';
 import { createHealthRouter } from './health.routes.js';
 
@@ -18,6 +20,8 @@ export function createApiRouter(): Router {
   router.use(createEmployeeRouter());
   router.use(createCourseRouter());
   router.use(createTrainingPlanRouter());
+  router.use(createInstructorRouter());
+  router.use(createTrainingSessionRouter());
 
   return router;
 }

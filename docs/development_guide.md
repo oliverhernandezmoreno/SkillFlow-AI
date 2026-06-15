@@ -68,7 +68,7 @@ npm run prisma:validate
 npx prisma migrate dev
 ```
 
-Use `prisma/schema.prisma` as the canonical schema. The `backend/prisma/schema.prisma` path is a symlink for compatibility.
+Use `prisma/schema.prisma` as the canonical schema.
 
 ## Quality Gate
 

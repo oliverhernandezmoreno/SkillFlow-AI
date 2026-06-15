@@ -87,7 +87,7 @@ The API runs on `http://localhost:3000` by default.
 
 ## Prisma
 
-The canonical schema is `prisma/schema.prisma`. A compatibility symlink exists at `backend/prisma/schema.prisma`.
+The canonical schema is `prisma/schema.prisma`.
 
 Useful commands:
 
