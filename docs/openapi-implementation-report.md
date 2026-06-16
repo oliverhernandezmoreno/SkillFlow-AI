@@ -217,11 +217,7 @@ These paths exist in `docs/api-spec.yml` but do not have Express routes yet.
 
 These Express routes are not represented in `docs/api-spec.yml`.
 
-- `POST /api/v1/auth/logout`
-- `PUT /api/v1/organizations/{organizationId}`
-- `PUT /api/v1/users/{userId}`
-- `POST /api/v1/training-plans/{trainingPlanId}/approve`
-- `POST /api/v1/training-plans/{trainingPlanId}/reject`
+- None as of the v1.0 Commercial Demo Backend Hardening update.
 
 ## Roadmap Endpoints Still Pending
 
@@ -236,5 +232,6 @@ These Express routes are not represented in `docs/api-spec.yml`.
 
 ## Notes
 
-- The OpenAPI production server URL contains a space and should be corrected before publication.
-- The OpenAPI contract intentionally includes future modules. Keep this report updated until those modules are implemented or the public contract is narrowed.
+- The OpenAPI production server URL was corrected to `https://api.skillflow-ai.cl/api/v1`.
+- The OpenAPI contract intentionally includes future modules. Roadmap-only paths are marked with `x-implementation-status: roadmap` until those modules are implemented or the public contract is narrowed.
+- `npm run test:e2e` now runs the real PostgreSQL-backed commercial flow and applies Prisma migrations before executing tests.

@@ -4,6 +4,7 @@ import { ForbiddenError, NotFoundError } from '../../shared/domain/errors.js';
 import { createCourseSchema } from './interfaces/http/validators/course.validators.js';
 import { CreateCourseUseCase } from './application/use-cases/create-course.use-case.js';
 import { GetCourseUseCase } from './application/use-cases/get-course.use-case.js';
+import { UpdateCourseUseCase } from './application/use-cases/update-course.use-case.js';
 import type { CourseRepository } from './domain/repositories/course.repository.js';
 import type { Course } from './domain/entities/course.entity.js';
 
@@ -103,5 +104,29 @@ describe('Courses module', () => {
         actorUserId: null,
       }),
     ).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('preserves omitted optional fields when updating course status', async () => {
+    const repository = new FakeCourseRepository();
+    const created = await new CreateCourseUseCase(repository).execute({
+      organizationId: '11111111-1111-4111-8111-111111111111',
+      code: 'SEG-001',
+      name: 'Safety induction',
+      modality: 'PRESENTIAL',
+      durationHours: 8,
+      competencyIds: ['safe-operation'],
+    });
+
+    const updated = await new UpdateCourseUseCase(repository).execute(
+      created.id,
+      { status: 'ACTIVE' },
+      {
+        organizationId: '11111111-1111-4111-8111-111111111111',
+        actorUserId: null,
+      },
+    );
+
+    expect(updated.status).toBe('ACTIVE');
+    expect(updated.competencyIds).toEqual(['safe-operation']);
   });
 });

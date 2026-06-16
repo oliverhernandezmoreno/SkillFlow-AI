@@ -65,15 +65,33 @@ export class PrismaCourseRepository implements CourseRepository {
   }
 
   async save(course: Course): Promise<void> {
-    await this.prisma.course.create({ data: course.toPrimitives() });
+    await this.prisma.course.create({ data: this.toPersistence(course) });
   }
 
   async update(course: Course): Promise<void> {
     const props = course.toPrimitives();
     await this.prisma.course.update({
       where: { id_organizationId: { id: props.id, organizationId: props.organizationId } },
-      data: props,
+      data: this.toPersistence(course),
     });
+  }
+
+  private toPersistence(course: Course): Prisma.CourseUncheckedCreateInput {
+    const props = course.toPrimitives();
+    return {
+      id: props.id,
+      organizationId: props.organizationId,
+      code: props.code,
+      name: props.name,
+      description: props.description,
+      modality: props.modality,
+      durationHours: props.durationHours,
+      status: props.status,
+      createdAt: props.createdAt,
+      updatedAt: props.updatedAt,
+      deletedAt: props.deletedAt,
+      version: props.version,
+    };
   }
 
   private toDomain(record: PrismaCourse): Course {

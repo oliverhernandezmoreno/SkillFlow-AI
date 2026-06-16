@@ -53,6 +53,25 @@ Each business module separates domain entities, application use cases, Prisma re
 
 See `docs/openapi-implementation-report.md` for the current OpenAPI implementation inventory.
 
+## Commercial Demo Backend Flow
+
+The backend includes a real PostgreSQL E2E flow for the v1.0 commercial demo:
+
+```text
+Organization -> User -> Employee -> Course -> Training Plan -> Training Session
+-> Enrollment -> Attendance -> Evaluation -> Certificate -> SENCE Declaration
+```
+
+Seed demo data with:
+
+```bash
+npm run seed:demo
+```
+
+The seed uses `DATABASE_URL_DEMO`, then `DATABASE_URL`, then the local default `postgresql://postgres:postgres@localhost:5433/skillflow?schema=public`.
+
+See `docs/demo-script.md` and `docs/rbac-matrix.md` for the demo walkthrough and permission matrix.
+
 ## Environment
 
 Copy the example file and adjust values:
@@ -109,10 +128,13 @@ npx prisma migrate dev
 npm run build
 npm run lint
 npm test
+npm run test:e2e
 npx prisma validate
 ```
 
-The CI workflow in `.github/workflows/backend-ci.yml` runs the same backend gate on pushes and pull requests.
+`npm run test:e2e` requires a safe PostgreSQL database. It resolves `DATABASE_URL_TEST`, then `DATABASE_URL`, then the local default `postgresql://postgres:postgres@localhost:5433/skillflow?schema=public`, applies Prisma migrations, and runs the HTTP + DB assertions. Do not point this command at production data.
+
+The CI workflow in `.github/workflows/backend-ci.yml` runs the same backend gate on pushes and pull requests with a PostgreSQL service.
 
 ## Known Technical Risks - Certificates
 

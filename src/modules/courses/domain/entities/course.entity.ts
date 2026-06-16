@@ -69,8 +69,12 @@ export class Course extends AggregateRoot<string> {
     competencies?: string[] | undefined;
     deletedAt?: Date | null | undefined;
   }): void {
+    const definedInput = Object.fromEntries(
+      Object.entries(input).filter(([, value]) => value !== undefined),
+    ) as Partial<CourseProps>;
+
     Object.assign(this.props, {
-      ...input,
+      ...definedInput,
       updatedAt: new Date(),
       version: this.props.version + 1,
     });

@@ -9,6 +9,23 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: skillflow_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d skillflow_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/skillflow_test?schema=public
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/skillflow_test?schema=public
 
     steps:
       - name: Checkout
@@ -32,7 +49,8 @@ jobs:
       - name: Test
         run: npm test
 
+      - name: E2E test
+        run: npm run test:e2e
+
       - name: Validate Prisma schema
         run: npx prisma validate
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/skillflow?schema=public

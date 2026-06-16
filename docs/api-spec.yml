@@ -23,7 +23,7 @@ info:
 servers:
   - url: http://localhost:3000/api/v1
     description: Local development
-  - url: https://api.SkillFlow AI.cl/api/v1
+  - url: https://api.skillflow-ai.cl/api/v1
     description: Production
 
 tags:
@@ -160,6 +160,14 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenResponse'
 
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Ends the authenticated session
+      responses:
+        '204':
+          description: Session ended
+
   /organizations:
     get:
       tags: [Organizations]
@@ -219,6 +227,24 @@ paths:
       responses:
         '200':
           description: Organización actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+    put:
+      tags: [Organizations]
+      summary: Replaces organization data
+      parameters:
+        - $ref: '#/components/parameters/OrganizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrganizationRequest'
+      responses:
+        '200':
+          description: Organization replaced
           content:
             application/json:
               schema:
@@ -296,6 +322,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+    put:
+      tags: [Users]
+      summary: Replaces a user
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User replaced
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
     delete:
       tags: [Users]
       summary: Desactiva un usuario
@@ -306,6 +350,7 @@ paths:
           description: Usuario desactivado
 
   /roles:
+    x-implementation-status: roadmap
     get:
       tags: [Roles]
       summary: Lista roles del sistema
@@ -540,6 +585,34 @@ paths:
       responses:
         '200':
           description: Plan actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+
+  /training-plans/{trainingPlanId}/approve:
+    post:
+      tags: [TrainingPlans]
+      summary: Approves an annual training plan
+      parameters:
+        - $ref: '#/components/parameters/TrainingPlanId'
+      responses:
+        '200':
+          description: Training plan approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+
+  /training-plans/{trainingPlanId}/reject:
+    post:
+      tags: [TrainingPlans]
+      summary: Rejects an annual training plan
+      parameters:
+        - $ref: '#/components/parameters/TrainingPlanId'
+      responses:
+        '200':
+          description: Training plan rejected
           content:
             application/json:
               schema:
@@ -1939,6 +2012,7 @@ paths:
                 $ref: '#/components/schemas/SenceDeclaration'
 
   /providers:
+    x-implementation-status: roadmap
     get:
       tags: [Providers]
       summary: Lista proveedores, OTEC externas o relatores
@@ -1973,6 +2047,7 @@ paths:
                 $ref: '#/components/schemas/Provider'
 
   /documents:
+    x-implementation-status: roadmap
     post:
       tags: [Documents]
       summary: Registra metadata de documento o evidencia
@@ -1991,6 +2066,7 @@ paths:
                 $ref: '#/components/schemas/Document'
 
   /reports/dashboard:
+    x-implementation-status: roadmap
     get:
       tags: [Reports]
       summary: Dashboard ejecutivo de capacitación
@@ -2010,6 +2086,7 @@ paths:
                 $ref: '#/components/schemas/DashboardReport'
 
   /reports/training-compliance:
+    x-implementation-status: roadmap
     get:
       tags: [Reports]
       summary: Reporte de cumplimiento de capacitación
@@ -2034,6 +2111,7 @@ paths:
                 $ref: '#/components/schemas/TrainingComplianceReport'
 
   /ai/recommendations/training-gaps:
+    x-implementation-status: roadmap
     post:
       tags: [AI]
       summary: Recomienda brechas de capacitación según cargo, competencias e historial
@@ -2052,6 +2130,7 @@ paths:
                 $ref: '#/components/schemas/TrainingGapRecommendationResponse'
 
   /audit/events:
+    x-implementation-status: roadmap
     get:
       tags: [Audit]
       summary: Lista eventos de auditoría
