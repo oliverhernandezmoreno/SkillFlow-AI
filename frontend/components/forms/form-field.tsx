@@ -9,11 +9,17 @@ interface FormFieldProps {
 }
 
 export function FormField({ label, htmlFor, error, children }: Readonly<FormFieldProps>) {
+  const errorId = `${htmlFor}-error`;
+
   return (
     <div className="space-y-2">
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {error ? <p className={cn('text-sm text-destructive')}>{error}</p> : null}
+      {error ? (
+        <p id={errorId} className={cn('text-sm text-destructive')} role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

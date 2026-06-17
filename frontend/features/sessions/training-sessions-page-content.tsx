@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { CalendarDays, GraduationCap, MapPin, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { ErrorState } from '@/components/feedback/error-state';
 import { EmptyState } from '@/components/feedback/empty-state';
@@ -14,10 +14,15 @@ import { SectionCard } from '@/components/layout/section-card';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
+import { useApiErrorToast } from '@/hooks/use-api-error-toast';
 import { useCourses } from '@/hooks/use-courses';
 import { useEnrollments } from '@/hooks/use-enrollments';
-import { useCreateTrainingSession, usePublishTrainingSession, useTrainingSessions } from '@/hooks/use-training-sessions';
+import { usePersistentFilters } from '@/hooks/use-persistent-filters';
+import { useCreateTrainingSession, usePublishTrainingSession, useTrainingSessions, useUpdateTrainingSession } from '@/hooks/use-training-sessions';
+import { useToast } from '@/components/feedback/toast-provider';
+import { TrainingSessionFormDialog } from '@/features/sessions/training-session-form-dialog';
 import { formatDate } from '@/lib/utils/format';
+import type { TrainingSessionFormValues } from '@/lib/validations/resources';
 import { useAuthStore } from '@/stores/auth-store';
 import type { TrainingSession } from '@/types/resources';
 
@@ -28,13 +33,24 @@ interface TrainingSessionRow extends TrainingSession {
 }
 
 export function TrainingSessionsPageContent() {
-  const [status, setStatus] = useState('');
+  const defaultFilters = useMemo(
+    () => ({
+      page: 1,
+      pageSize: 50,
+      status: '',
+    }),
+    [],
+  );
+  const [filters, setFilters] = usePersistentFilters('skillflow-filters-training-sessions', defaultFilters);
   const organizationId = useAuthStore((state) => state.user?.organizationId);
-  const sessionsQuery = useTrainingSessions({ page: 1, pageSize: 50, status, organizationId });
+  const sessionsQuery = useTrainingSessions({ ...filters, organizationId });
   const coursesQuery = useCourses({ page: 1, pageSize: 100, organizationId });
   const enrollmentsQuery = useEnrollments({ page: 1, pageSize: 100, organizationId });
   const createTrainingSession = useCreateTrainingSession();
+  const updateTrainingSession = useUpdateTrainingSession();
   const publishTrainingSession = usePublishTrainingSession();
+  const { showToast } = useToast();
+  const showApiError = useApiErrorToast();
   const sessions = sessionsQuery.data?.data ?? [];
   const enrollments = useMemo(() => enrollmentsQuery.data?.data ?? [], [enrollmentsQuery.data?.data]);
   const courseById = useMemo(
@@ -63,26 +79,45 @@ export function TrainingSessionsPageContent() {
     0,
   );
 
-  async function createFromFirstCourse() {
-    if (!organizationId || !coursesQuery.data?.data[0]) {
+  async function create(values: TrainingSessionFormValues) {
+    if (!organizationId) {
       return;
     }
 
-    const course = coursesQuery.data.data[0];
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() + 7);
-    const endDate = new Date(startDate);
-    endDate.setHours(endDate.getHours() + Math.max(course.durationHours, 1));
-
     await createTrainingSession.mutateAsync({
       organizationId,
-      courseId: course.id,
-      name: `${course.name} session`,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      location: 'Main training room',
-      capacity: 20,
+      courseId: values.courseId,
+      name: values.name,
+      startDate: new Date(values.startDate).toISOString(),
+      endDate: new Date(values.endDate).toISOString(),
+      location: values.location || null,
+      capacity: values.capacity,
+      meetingUrl: values.meetingUrl || null,
     });
+  }
+
+  async function update(trainingSessionId: string, values: TrainingSessionFormValues) {
+    await updateTrainingSession.mutateAsync({
+      trainingSessionId,
+      input: {
+        courseId: values.courseId,
+        name: values.name,
+        startDate: new Date(values.startDate).toISOString(),
+        endDate: new Date(values.endDate).toISOString(),
+        location: values.location || null,
+        capacity: values.capacity,
+        meetingUrl: values.meetingUrl || null,
+      },
+    });
+  }
+
+  async function publish(trainingSessionId: string) {
+    try {
+      await publishTrainingSession.mutateAsync(trainingSessionId);
+      showToast({ title: 'Session published', description: 'The session is visible for enrollment workflows.', tone: 'success' });
+    } catch (error) {
+      showApiError(error, 'Unable to publish session');
+    }
   }
 
   const columns: Array<ColumnDef<TrainingSessionRow>> = [
@@ -99,14 +134,22 @@ export function TrainingSessionsPageContent() {
       id: 'actions',
       header: '',
       cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={row.original.status !== 'SCHEDULED' || publishTrainingSession.isPending}
-          onClick={() => void publishTrainingSession.mutate(row.original.id)}
-        >
-          Publish
-        </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <TrainingSessionFormDialog
+            mode="edit"
+            courses={coursesQuery.data?.data ?? []}
+            session={row.original}
+            onSubmit={(values) => update(row.original.id, values)}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={row.original.status !== 'SCHEDULED' || publishTrainingSession.isPending}
+            onClick={() => void publish(row.original.id)}
+          >
+            Publish
+          </Button>
+        </div>
       ),
     },
   ];
@@ -117,9 +160,7 @@ export function TrainingSessionsPageContent() {
         title="Training Sessions"
         description="Coordinate live training delivery with capacity, instructors and schedule readiness."
         action={
-          <Button onClick={() => void createFromFirstCourse()} disabled={createTrainingSession.isPending || (coursesQuery.data?.data.length ?? 0) === 0}>
-            {createTrainingSession.isPending ? 'Scheduling...' : 'Schedule session'}
-          </Button>
+          <TrainingSessionFormDialog mode="create" courses={coursesQuery.data?.data ?? []} onSubmit={create} />
         }
         icon={GraduationCap}
       />
@@ -129,9 +170,9 @@ export function TrainingSessionsPageContent() {
         <StatCard title="Upcoming" value={String(upcoming)} change="Based on start dates" tone="slate" icon={MapPin} />
       </section>
       <FilterBar
-        statusValue={status}
+        statusValue={filters.status}
         statusOptions={['DRAFT', 'SCHEDULED', 'PUBLISHED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'CLOSED']}
-        onStatusChange={setStatus}
+        onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
       <SectionCard title="Training Sessions overview" description="Live sessions with derived capacity usage.">
         {sessionsQuery.isLoading ? <LoadingSkeleton /> : null}

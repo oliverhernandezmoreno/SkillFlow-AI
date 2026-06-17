@@ -11,6 +11,8 @@ import { FormField } from '@/components/forms/form-field';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/feedback/toast-provider';
+import { getErrorMessage } from '@/lib/api/errors';
 import { demoAccount } from '@/lib/constants/demo-account';
 import { login } from '@/lib/auth/session';
 import { loginSchema, type LoginFormValues } from '@/lib/validations/auth';
@@ -26,6 +28,7 @@ export default function LoginPage() {
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const {
     register,
@@ -49,9 +52,16 @@ function LoginContent() {
     setErrorMessage(null);
     try {
       await login(values);
+      showToast({
+        title: 'Signed in',
+        description: 'Demo workspace connected successfully.',
+        tone: 'success',
+      });
       router.replace(searchParams.get('next') ?? '/dashboard');
-    } catch {
-      setErrorMessage('Unable to sign in with those credentials.');
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setErrorMessage(message);
+      showToast({ title: 'Login failed', description: message, tone: 'error' });
     }
   }
 

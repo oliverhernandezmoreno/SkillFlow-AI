@@ -3,7 +3,7 @@
 import { useAuthStore } from '@/stores/auth-store';
 import type { ApiErrorPayload, ApiRequestOptions, TokenResponse } from '@/types/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
 
 export class ApiClientError extends Error {
   constructor(

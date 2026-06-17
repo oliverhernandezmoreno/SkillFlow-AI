@@ -1,6 +1,6 @@
-# SkillFlow AI Backend
+# SkillFlow AI
 
-SkillFlow AI is a B2B HRTech backend for training management, annual training plans, employee records, course catalog management, compliance workflows, and future AI-assisted HR operations.
+SkillFlow AI is a B2B HRTech platform for training management, annual training plans, employee records, course catalog management, compliance workflows, and future AI-assisted HR operations.
 
 ## Stack
 
@@ -11,6 +11,7 @@ SkillFlow AI is a B2B HRTech backend for training management, annual training pl
 - PostgreSQL
 - Vitest and Supertest
 - ESLint and Prettier
+- Next.js frontend with TanStack Query, React Hook Form, Zod, Recharts, and Vitest
 
 ## Architecture
 
@@ -130,7 +131,9 @@ npm run dev
 
 The frontend runs on `http://localhost:3001` when started with `npm run dev -- --port 3001`. It reads the API URL from `NEXT_PUBLIC_API_URL`, with `http://localhost:3000/api/v1` as the demo default.
 
-Password recovery screens are available at `/forgot-password` and `/reset-password`. They run in frontend stub mode while `NEXT_PUBLIC_ENABLE_PASSWORD_RESET=false`; no email is sent and no real reset token is issued until backend endpoints are implemented.
+Password recovery screens are available at `/forgot-password` and `/reset-password` and use the backend password reset endpoints when enabled by environment configuration.
+
+The v1.5 frontend demo experience includes a demo banner, guided checklist, persistent module filters, toast notifications, connected create/edit forms for priority operational resources, and basic frontend regression tests.
 
 ## Prisma
 
@@ -152,6 +155,15 @@ npm run lint
 npm test
 npm run test:e2e
 npx prisma validate
+```
+
+Frontend quality gate:
+
+```bash
+cd frontend
+npm run lint
+npm run build
+npm test
 ```
 
 `npm run test:e2e` requires a safe PostgreSQL database. It resolves `DATABASE_URL_TEST`, then `DATABASE_URL`, then the local default `postgresql://postgres:postgres@localhost:5433/skillflow?schema=public`, applies Prisma migrations, and runs the HTTP + DB assertions. Do not point this command at production data.

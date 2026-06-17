@@ -18,6 +18,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/feedback/toast-provider';
+import { getErrorMessage } from '@/lib/api/errors';
 import { courseFormSchema, type CourseFormValues } from '@/lib/validations/resources';
 import type { Course } from '@/types/resources';
 
@@ -30,6 +32,7 @@ interface CourseFormDialogProps {
 export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseFormDialogProps>) {
   const [open, setOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { showToast } = useToast();
   const {
     register,
     handleSubmit,
@@ -50,12 +53,19 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
     setSubmitError(null);
     try {
       await onSubmit(values);
+      showToast({
+        title: mode === 'create' ? 'Course created' : 'Course updated',
+        description: 'Catalog data is synced with the backend.',
+        tone: 'success',
+      });
       setOpen(false);
       if (mode === 'create') {
         reset();
       }
-    } catch {
-      setSubmitError('Unable to save course.');
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setSubmitError(message);
+      showToast({ title: 'Unable to save course', description: message, tone: 'error' });
     }
   }
 
@@ -76,7 +86,14 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
           <DialogDescription className="mt-1 text-sm text-muted-foreground">
             Maintain catalog data used by sessions, enrollments and certificates.
           </DialogDescription>
-          <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={(event) => void handleSubmit(submit)(event)}>
+          <form
+            className="mt-6 grid gap-4 sm:grid-cols-2"
+            onSubmit={(event) =>
+              void handleSubmit(submit, () =>
+                showToast({ title: 'Validation error', description: 'Review the highlighted course fields.', tone: 'warning' }),
+              )(event)
+            }
+          >
             <FormField label="Code" htmlFor="code" error={errors.code?.message}>
               <Input id="code" {...register('code')} />
             </FormField>

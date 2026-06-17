@@ -2,30 +2,56 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { CalendarCheck, CheckCircle2, ClipboardList, Percent } from 'lucide-react';
+import { Suspense, useMemo } from 'react';
 
 import { EmptyState } from '@/components/feedback/empty-state';
 import { ErrorState } from '@/components/feedback/error-state';
 import { LoadingSkeleton } from '@/components/feedback/loading-skeleton';
 import { StatusBadge } from '@/components/feedback/status-badge';
+import { FilterBar } from '@/components/forms/filter-bar';
 import { AppShell } from '@/components/layout/app-shell';
 import { PageHeader } from '@/components/layout/page-header';
 import { SectionCard } from '@/components/layout/section-card';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
+import { useApiErrorToast } from '@/hooks/use-api-error-toast';
 import { useAttendance, useCreateBulkAttendance } from '@/hooks/use-attendance';
 import { useEnrollments } from '@/hooks/use-enrollments';
+import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import { useTrainingSessions } from '@/hooks/use-training-sessions';
+import { useToast } from '@/components/feedback/toast-provider';
 import { formatPercent } from '@/lib/utils/format';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AttendanceRecord } from '@/types/resources';
 
 export default function AttendancePage() {
+  return (
+    <AppShell>
+      <Suspense fallback={<LoadingSkeleton />}>
+        <AttendancePageContent />
+      </Suspense>
+    </AppShell>
+  );
+}
+
+function AttendancePageContent() {
+  const defaultFilters = useMemo(
+    () => ({
+      page: 1,
+      pageSize: 100,
+      status: '',
+    }),
+    [],
+  );
+  const [filters, setFilters] = usePersistentFilters('skillflow-filters-attendance', defaultFilters);
   const organizationId = useAuthStore((state) => state.user?.organizationId);
-  const attendanceQuery = useAttendance({ page: 1, pageSize: 100, organizationId });
+  const attendanceQuery = useAttendance({ ...filters, organizationId });
   const enrollmentsQuery = useEnrollments({ page: 1, pageSize: 100, organizationId });
   const sessionsQuery = useTrainingSessions({ page: 1, pageSize: 100, organizationId });
   const bulkAttendance = useCreateBulkAttendance();
+  const { showToast } = useToast();
+  const showApiError = useApiErrorToast();
   const records = attendanceQuery.data?.data ?? [];
   const enrollments = enrollmentsQuery.data?.data ?? [];
   const sessions = sessionsQuery.data?.data ?? [];
@@ -47,16 +73,21 @@ export default function AttendancePage() {
       return;
     }
 
-    await bulkAttendance.mutateAsync({
-      organizationId,
-      trainingSessionId: session.id,
-      records: sessionEnrollments.map((enrollment) => ({
-        enrollmentId: enrollment.id,
-        employeeId: enrollment.employeeId,
-        status: 'PRESENT',
-        method: 'MANUAL',
-      })),
-    });
+    try {
+      await bulkAttendance.mutateAsync({
+        organizationId,
+        trainingSessionId: session.id,
+        records: sessionEnrollments.map((enrollment) => ({
+          enrollmentId: enrollment.id,
+          employeeId: enrollment.employeeId,
+          status: 'PRESENT',
+          method: 'MANUAL',
+        })),
+      });
+      showToast({ title: 'Attendance recorded', description: 'Bulk attendance was synced with the backend.', tone: 'success' });
+    } catch (error) {
+      showApiError(error, 'Unable to record attendance');
+    }
   }
 
   const columns: Array<ColumnDef<AttendanceRecord>> = [
@@ -80,8 +111,7 @@ export default function AttendancePage() {
   ];
 
   return (
-    <AppShell>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <PageHeader
           title="Attendance"
           description="Capture attendance evidence, QR check-ins and completion signals for certification."
@@ -97,6 +127,11 @@ export default function AttendancePage() {
           <StatCard title="Average attendance" value={formatPercent(averageAttendance)} change="Derived from records" tone="emerald" icon={Percent} />
           <StatCard title="Present" value={String(presentRecords)} change="Manual and digital records" tone="cyan" icon={CheckCircle2} />
         </section>
+        <FilterBar
+          statusValue={filters.status}
+          statusOptions={['PRESENT', 'ABSENT', 'LATE', 'EXCUSED', 'INCOMPLETE']}
+          onStatusChange={(status) => setFilters({ status, page: 1 })}
+        />
         <SectionCard title="Attendance overview" description="Attendance records grouped by session and participant.">
           {attendanceQuery.isLoading ? <LoadingSkeleton /> : null}
           {attendanceQuery.isError ? <ErrorState onAction={() => void attendanceQuery.refetch()} /> : null}
@@ -105,7 +140,6 @@ export default function AttendancePage() {
             <EmptyState icon={CalendarCheck} title="No attendance records found" description="Use bulk mark present after enrollments exist for a scheduled session." actionLabel="Record attendance" />
           ) : null}
         </SectionCard>
-      </div>
-    </AppShell>
+    </div>
   );
 }

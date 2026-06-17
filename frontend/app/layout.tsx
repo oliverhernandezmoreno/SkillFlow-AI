@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { QueryProvider } from '@/components/layout/query-provider';
 import { ThemeProvider } from '@/components/layout/theme-provider';
+import { ToastProvider } from '@/components/feedback/toast-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <QueryProvider>{children}</QueryProvider>
+          <ToastProvider>
+            <QueryProvider>{children}</QueryProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

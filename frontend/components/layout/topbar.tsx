@@ -5,11 +5,13 @@ import { useTheme } from 'next-themes';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/feedback/toast-provider';
 import { logout } from '@/lib/auth/session';
 import { useAuthStore } from '@/stores/auth-store';
 
 export function Topbar({ onOpenMenu }: Readonly<{ onOpenMenu: () => void }>) {
   const { setTheme, theme } = useTheme();
+  const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
   const initials = user ? `${user.firstName[0] ?? 'S'}${user.lastName[0] ?? 'F'}` : 'SF';
 
@@ -46,7 +48,14 @@ export function Topbar({ onOpenMenu }: Readonly<{ onOpenMenu: () => void }>) {
             <p className="text-sm font-medium">{user ? `${user.firstName} ${user.lastName}` : 'Demo Admin'}</p>
             <p className="text-xs text-muted-foreground">HR Operations</p>
           </div>
-          <Button variant="ghost" size="icon" aria-label="Logout" onClick={() => void logout()}>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Logout"
+            onClick={() => {
+              void logout().then(() => showToast({ title: 'Signed out', description: 'Session closed safely.', tone: 'info' }));
+            }}
+          >
             <LogOut className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>

@@ -1,9 +1,11 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertTriangle, Award, BookOpen, CalendarDays, ClipboardCheck, FileCheck2, Plus, TrendingUp, Users } from 'lucide-react';
+import Link from 'next/link';
+import { AlertTriangle, Award, BookOpen, CalendarDays, ClipboardCheck, FileCheck2, LayoutDashboard, Plus, TrendingUp, Users } from 'lucide-react';
 
 import { MetricChart } from '@/components/charts/metric-chart';
+import { EmptyState } from '@/components/feedback/empty-state';
 import { ErrorState } from '@/components/feedback/error-state';
 import { LoadingSkeleton } from '@/components/feedback/loading-skeleton';
 import { StatusBadge } from '@/components/feedback/status-badge';
@@ -111,6 +113,16 @@ export function DashboardView() {
     { title: 'SENCE declarations', value: String(senceDeclarations.length), change: `${readySence} ready, submitted or accepted`, tone: 'amber' as const, icon: FileCheck2 },
     { title: 'Critical alerts', value: String(criticalAlerts), change: 'Pending, waitlisted or observed items', tone: 'rose' as const, icon: AlertTriangle },
   ];
+  const hasAnyData =
+    employees.length +
+      courses.length +
+      sessions.length +
+      enrollments.length +
+      attendance.length +
+      certificates.length +
+      evaluations.length +
+      senceDeclarations.length >
+    0;
 
   return (
     <div className="space-y-6">
@@ -122,6 +134,14 @@ export function DashboardView() {
 
       {dashboard.isLoading ? <LoadingSkeleton /> : null}
       {dashboard.isError ? <ErrorState description="One or more dashboard sources could not be loaded." /> : null}
+      {!dashboard.isLoading && !dashboard.isError && !hasAnyData ? (
+        <EmptyState
+          icon={LayoutDashboard}
+          title="No operational data yet"
+          description="Create employees, courses and sessions to populate the executive dashboard."
+          actionLabel="Start setup"
+        />
+      ) : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {executiveStats.map((stat) => (
@@ -129,23 +149,27 @@ export function DashboardView() {
         ))}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <SectionCard title="Attendance trend" description="Average participant presence across active programs.">
-          <MetricChart data={attendanceTrend} dataKey="attendance" />
-        </SectionCard>
-        <SectionCard title="PAC compliance" description="Completion by workforce area.">
-          <MetricChart data={complianceTrend} dataKey="compliance" type="bar" />
-        </SectionCard>
-      </section>
+      {hasAnyData ? (
+        <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <SectionCard title="Attendance trend" description="Average participant presence across active programs.">
+            <MetricChart data={attendanceTrend} dataKey="attendance" />
+          </SectionCard>
+          <SectionCard title="PAC compliance" description="Completion by workforce area.">
+            <MetricChart data={complianceTrend} dataKey="compliance" type="bar" />
+          </SectionCard>
+        </section>
+      ) : null}
 
       <section className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
         <SectionCard
           title="Upcoming sessions"
           description="Commercial demo schedule with capacity and readiness status."
           action={
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              New
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/training-sessions">
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                New
+              </Link>
             </Button>
           }
         >

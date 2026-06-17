@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { BookOpen, Clock3, LibraryBig, Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo } from 'react';
 
 import { MetricChart } from '@/components/charts/metric-chart';
 import { ErrorState } from '@/components/feedback/error-state';
@@ -16,15 +16,24 @@ import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
 import { CourseFormDialog } from '@/features/courses/course-form-dialog';
 import { useCourses, useCreateCourse, useUpdateCourse } from '@/hooks/use-courses';
+import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import type { CourseFormValues } from '@/lib/validations/resources';
 import { useAuthStore } from '@/stores/auth-store';
 import type { Course } from '@/types/resources';
 
 export function CoursesPageContent() {
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
+  const defaultFilters = useMemo(
+    () => ({
+      page: 1,
+      pageSize: 50,
+      search: '',
+      status: '',
+    }),
+    [],
+  );
+  const [filters, setFilters] = usePersistentFilters('skillflow-filters-courses', defaultFilters);
   const organizationId = useAuthStore((state) => state.user?.organizationId);
-  const coursesQuery = useCourses({ page: 1, pageSize: 50, search, status, organizationId });
+  const coursesQuery = useCourses({ ...filters, organizationId });
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourse();
   const courses = coursesQuery.data?.data ?? [];
@@ -91,11 +100,11 @@ export function CoursesPageContent() {
         <StatCard title="Average duration" value={`${averageDuration.toFixed(1)}h`} change="Current page average" tone="cyan" icon={Clock3} />
       </section>
       <FilterBar
-        searchValue={search}
-        statusValue={status}
+        searchValue={filters.search}
+        statusValue={filters.status}
         statusOptions={['DRAFT', 'ACTIVE', 'INACTIVE', 'ARCHIVED']}
-        onSearchChange={setSearch}
-        onStatusChange={setStatus}
+        onSearchChange={(search) => setFilters({ search, page: 1 })}
+        onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
       <SectionCard title="Courses overview" description="Live catalog records from the SkillFlow backend.">
         {coursesQuery.isLoading ? <LoadingSkeleton /> : null}

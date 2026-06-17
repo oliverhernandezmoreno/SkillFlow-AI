@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { ListChecks, UserCheck, UserRoundCheck, UsersRound } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { ErrorState } from '@/components/feedback/error-state';
 import { EmptyState } from '@/components/feedback/empty-state';
@@ -14,10 +14,15 @@ import { SectionCard } from '@/components/layout/section-card';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
+import { useApiErrorToast } from '@/hooks/use-api-error-toast';
+import { EnrollmentFormDialog } from '@/features/enrollments/enrollment-form-dialog';
 import { useEmployees } from '@/hooks/use-employees';
 import { useCancelEnrollment, useCreateEnrollment, useEnrollments } from '@/hooks/use-enrollments';
+import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import { useTrainingSessions } from '@/hooks/use-training-sessions';
+import { useToast } from '@/components/feedback/toast-provider';
 import { formatDate } from '@/lib/utils/format';
+import type { EnrollmentFormValues } from '@/lib/validations/resources';
 import { useAuthStore } from '@/stores/auth-store';
 import type { Enrollment } from '@/types/resources';
 
@@ -28,13 +33,23 @@ interface EnrollmentRow extends Enrollment {
 }
 
 export function EnrollmentsPageContent() {
-  const [status, setStatus] = useState('');
+  const defaultFilters = useMemo(
+    () => ({
+      page: 1,
+      pageSize: 50,
+      status: '',
+    }),
+    [],
+  );
+  const [filters, setFilters] = usePersistentFilters('skillflow-filters-enrollments', defaultFilters);
   const organizationId = useAuthStore((state) => state.user?.organizationId);
-  const enrollmentsQuery = useEnrollments({ page: 1, pageSize: 50, status, organizationId });
+  const enrollmentsQuery = useEnrollments({ ...filters, organizationId });
   const employeesQuery = useEmployees({ page: 1, pageSize: 100, organizationId });
   const sessionsQuery = useTrainingSessions({ page: 1, pageSize: 100, organizationId });
   const createEnrollment = useCreateEnrollment();
   const cancelEnrollment = useCancelEnrollment();
+  const { showToast } = useToast();
+  const showApiError = useApiErrorToast();
   const enrollments = enrollmentsQuery.data?.data ?? [];
   const employeeById = useMemo(
     () =>
@@ -60,18 +75,25 @@ export function EnrollmentsPageContent() {
   const pending = enrollments.filter((enrollment) => enrollment.status === 'PENDING').length;
   const completed = enrollments.filter((enrollment) => enrollment.status === 'COMPLETED').length;
 
-  async function enrollFirstEmployee() {
-    const employee = employeesQuery.data?.data[0];
-    const session = sessionsQuery.data?.data.find((item) => ['PUBLISHED', 'SCHEDULED'].includes(item.status));
-    if (!organizationId || !employee || !session) {
+  async function enroll(values: EnrollmentFormValues) {
+    if (!organizationId) {
       return;
     }
 
     await createEnrollment.mutateAsync({
       organizationId,
-      employeeId: employee.id,
-      trainingSessionId: session.id,
+      employeeId: values.employeeId,
+      trainingSessionId: values.trainingSessionId,
     });
+  }
+
+  async function cancel(enrollmentId: string) {
+    try {
+      await cancelEnrollment.mutateAsync(enrollmentId);
+      showToast({ title: 'Enrollment cancelled', description: 'The participant status was updated.', tone: 'success' });
+    } catch (error) {
+      showApiError(error, 'Unable to cancel enrollment');
+    }
   }
 
   const columns: Array<ColumnDef<EnrollmentRow>> = [
@@ -96,7 +118,7 @@ export function EnrollmentsPageContent() {
           size="sm"
           variant="outline"
           disabled={row.original.status === 'CANCELLED' || cancelEnrollment.isPending}
-          onClick={() => void cancelEnrollment.mutate(row.original.id)}
+          onClick={() => void cancel(row.original.id)}
         >
           Cancel
         </Button>
@@ -110,9 +132,11 @@ export function EnrollmentsPageContent() {
         title="Enrollments"
         description="Monitor participant confirmations, waitlists and completion progress."
         action={
-          <Button onClick={() => void enrollFirstEmployee()} disabled={createEnrollment.isPending || !employeesQuery.data?.data[0]}>
-            {createEnrollment.isPending ? 'Enrolling...' : 'Enroll participant'}
-          </Button>
+          <EnrollmentFormDialog
+            employees={employeesQuery.data?.data ?? []}
+            sessions={(sessionsQuery.data?.data ?? []).filter((session) => ['PUBLISHED', 'SCHEDULED'].includes(session.status))}
+            onSubmit={enroll}
+          />
         }
         icon={ListChecks}
       />
@@ -122,9 +146,9 @@ export function EnrollmentsPageContent() {
         <StatCard title="Completed" value={String(completed)} change="Ready for certificate checks" tone="indigo" icon={UserRoundCheck} />
       </section>
       <FilterBar
-        statusValue={status}
+        statusValue={filters.status}
         statusOptions={['PENDING', 'CONFIRMED', 'WAITLISTED', 'ENROLLED', 'CANCELLED', 'COMPLETED', 'FAILED']}
-        onStatusChange={setStatus}
+        onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
       <SectionCard title="Enrollments overview" description="Live enrollment records enriched with employee and session names.">
         {enrollmentsQuery.isLoading ? <LoadingSkeleton /> : null}

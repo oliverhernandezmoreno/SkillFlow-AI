@@ -18,6 +18,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/feedback/toast-provider';
+import { getErrorMessage } from '@/lib/api/errors';
 import { employeeFormSchema, type EmployeeFormValues } from '@/lib/validations/resources';
 import type { Employee } from '@/types/resources';
 
@@ -30,6 +32,7 @@ interface EmployeeFormDialogProps {
 export function EmployeeFormDialog({ mode, employee, onSubmit }: Readonly<EmployeeFormDialogProps>) {
   const [open, setOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { showToast } = useToast();
   const {
     register,
     handleSubmit,
@@ -51,12 +54,19 @@ export function EmployeeFormDialog({ mode, employee, onSubmit }: Readonly<Employ
     setSubmitError(null);
     try {
       await onSubmit(values);
+      showToast({
+        title: mode === 'create' ? 'Employee created' : 'Employee updated',
+        description: 'The employee record is synced with the backend.',
+        tone: 'success',
+      });
       setOpen(false);
       if (mode === 'create') {
         reset();
       }
-    } catch {
-      setSubmitError('Unable to save employee.');
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setSubmitError(message);
+      showToast({ title: 'Unable to save employee', description: message, tone: 'error' });
     }
   }
 
@@ -77,7 +87,14 @@ export function EmployeeFormDialog({ mode, employee, onSubmit }: Readonly<Employ
           <DialogDescription className="mt-1 text-sm text-muted-foreground">
             Keep workforce data aligned with the backend employee record.
           </DialogDescription>
-          <form className="mt-6 grid gap-4 sm:grid-cols-2" onSubmit={(event) => void handleSubmit(submit)(event)}>
+          <form
+            className="mt-6 grid gap-4 sm:grid-cols-2"
+            onSubmit={(event) =>
+              void handleSubmit(submit, () =>
+                showToast({ title: 'Validation error', description: 'Review the highlighted employee fields.', tone: 'warning' }),
+              )(event)
+            }
+          >
             <FormField label="Document number" htmlFor="documentNumber" error={errors.documentNumber?.message}>
               <Input id="documentNumber" {...register('documentNumber')} />
             </FormField>

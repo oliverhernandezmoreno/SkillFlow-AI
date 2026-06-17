@@ -20,3 +20,27 @@ export const courseFormSchema = z.object({
 });
 
 export type CourseFormValues = z.infer<typeof courseFormSchema>;
+
+export const trainingSessionFormSchema = z
+  .object({
+    courseId: z.string().uuid('Select a course'),
+    name: z.string().min(1, 'Session name is required'),
+    startDate: z.string().min(1, 'Start date is required'),
+    endDate: z.string().min(1, 'End date is required'),
+    location: z.string().optional(),
+    capacity: z.coerce.number().int().min(1, 'Capacity must be at least 1'),
+    meetingUrl: z.string().url('Use a valid meeting URL').or(z.literal('')),
+  })
+  .refine((values) => new Date(values.endDate).getTime() > new Date(values.startDate).getTime(), {
+    message: 'End date must be after start date',
+    path: ['endDate'],
+  });
+
+export type TrainingSessionFormValues = z.infer<typeof trainingSessionFormSchema>;
+
+export const enrollmentFormSchema = z.object({
+  employeeId: z.string().uuid('Select an employee'),
+  trainingSessionId: z.string().uuid('Select a session'),
+});
+
+export type EnrollmentFormValues = z.infer<typeof enrollmentFormSchema>;

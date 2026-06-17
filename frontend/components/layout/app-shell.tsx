@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/layout/protected-route';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
 import { Button } from '@/components/ui/button';
+import { DemoModeBanner } from '@/components/demo/demo-mode-banner';
 
 export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -37,7 +38,10 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
 
         <div className="min-w-0">
           <Topbar onOpenMenu={() => setIsMobileOpen(true)} />
-          <main className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="mx-auto w-full max-w-7xl space-y-6 p-3 sm:p-6 lg:p-8">
+            <DemoModeBanner />
+            {children}
+          </main>
         </div>
       </div>
     </ProtectedRoute>

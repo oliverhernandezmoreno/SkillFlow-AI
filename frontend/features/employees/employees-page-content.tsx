@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { BadgeCheck, UserPlus, Users } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo } from 'react';
 
 import { ErrorState } from '@/components/feedback/error-state';
 import { EmptyState } from '@/components/feedback/empty-state';
@@ -15,15 +15,24 @@ import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
 import { EmployeeFormDialog } from '@/features/employees/employee-form-dialog';
 import { useCreateEmployee, useEmployees, useUpdateEmployee } from '@/hooks/use-employees';
+import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import type { EmployeeFormValues } from '@/lib/validations/resources';
 import { useAuthStore } from '@/stores/auth-store';
 import type { Employee } from '@/types/resources';
 
 export function EmployeesPageContent() {
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
+  const defaultFilters = useMemo(
+    () => ({
+      page: 1,
+      pageSize: 50,
+      search: '',
+      status: '',
+    }),
+    [],
+  );
+  const [filters, setFilters] = usePersistentFilters('skillflow-filters-employees', defaultFilters);
   const organizationId = useAuthStore((state) => state.user?.organizationId);
-  const employeesQuery = useEmployees({ page: 1, pageSize: 50, search, status, organizationId });
+  const employeesQuery = useEmployees({ ...filters, organizationId });
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const employees = employeesQuery.data?.data ?? [];
@@ -87,11 +96,11 @@ export function EmployeesPageContent() {
         <StatCard title="Profile source" value="Live" change="Authenticated tenant data" tone="cyan" icon={UserPlus} />
       </section>
       <FilterBar
-        searchValue={search}
-        statusValue={status}
+        searchValue={filters.search}
+        statusValue={filters.status}
         statusOptions={['ACTIVE', 'INACTIVE', 'TERMINATED']}
-        onSearchChange={setSearch}
-        onStatusChange={setStatus}
+        onSearchChange={(search) => setFilters({ search, page: 1 })}
+        onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
       <SectionCard title="Employees overview" description="Live employee records from the SkillFlow backend.">
         {employeesQuery.isLoading ? <LoadingSkeleton /> : null}
