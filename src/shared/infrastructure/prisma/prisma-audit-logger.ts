@@ -18,14 +18,18 @@ export class PrismaAuditLogger implements AuditLogger {
       userAgent: input.userAgent ?? null,
     };
     if (input.before !== undefined) {
-      data.before = input.before ?? Prisma.JsonNull;
+      data.before = toPrismaJson(input.before);
     }
     if (input.after !== undefined) {
-      data.after = input.after ?? Prisma.JsonNull;
+      data.after = toPrismaJson(input.after);
     }
 
     await this.prisma.auditEvent.create({
       data,
     });
   }
+}
+
+function toPrismaJson(value: unknown): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  return value === null ? Prisma.JsonNull : (value as Prisma.InputJsonValue);
 }

@@ -7,6 +7,7 @@ import { loadEnvironment, type Environment } from './config/environment.js';
 import { createApiRouter } from './interfaces/http/routes/api.routes.js';
 import { errorHandler } from './interfaces/http/middlewares/error-handler.middleware.js';
 import { createHealthRouter } from './interfaces/http/routes/health.routes.js';
+import { createSystemRouter } from './interfaces/http/routes/system.routes.js';
 import { createGlobalRateLimit } from './interfaces/http/middlewares/global-rate-limit.middleware.js';
 
 export function createApp(environment: Environment = loadEnvironment()): Express {
@@ -35,6 +36,7 @@ export function createApp(environment: Environment = loadEnvironment()): Express
   app.use(express.json({ limit: environment.JSON_PAYLOAD_LIMIT }));
 
   app.use(createHealthRouter());
+  app.use('/api/v1', createSystemRouter(environment));
   app.use('/api/v1', createApiRouter());
   app.use(errorHandler);
 

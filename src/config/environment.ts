@@ -12,6 +12,11 @@ const environmentSchema = z.object({
   JSON_PAYLOAD_LIMIT: z.string().default('1mb'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(300),
+  ENABLE_DEMO_BOOTSTRAP: z
+    .string()
+    .default('false')
+    .transform((value) => value === 'true'),
+  BOOTSTRAP_SECRET: z.string().min(1).optional(),
 });
 
 type ParsedEnvironment = z.infer<typeof environmentSchema>;
