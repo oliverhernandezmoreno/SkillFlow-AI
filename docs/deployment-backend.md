@@ -2,6 +2,8 @@
 
 This guide prepares the SkillFlow AI backend for a public demo on Render with Supabase PostgreSQL or Render PostgreSQL.
 
+Supabase is used as managed PostgreSQL in this phase. SkillFlow AI does not use Supabase Auth; backend JWT/Auth/RBAC remains the source of truth for authentication and authorization.
+
 ## Target Architecture
 
 ```text
@@ -45,6 +47,8 @@ postgresql://USER:PASSWORD@HOST:5432/postgres?schema=public
 ```
 
 Use the pooled or direct connection string according to the deployment plan. For Prisma migrations, the direct connection string is the safest default.
+
+Do not configure or depend on Supabase Auth for this backend deployment. The backend owns login, JWT issuance, refresh tokens, password reset, and RBAC permissions.
 
 ## Render Service
 

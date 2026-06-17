@@ -32,7 +32,11 @@ The frontend uses `NEXT_PUBLIC_API_URL` for the backend API. The local demo defa
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
+NEXT_PUBLIC_SUPABASE_URL=https://mlxjqxuwvlrvzurnogko.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_umzl9w1L4mOhyPv6olgpHw_nTdfs_yP
 ```
+
+Supabase is configured only with public frontend helpers for this phase. SkillFlow AI authentication still uses the backend JWT/Auth/RBAC flow through Zustand and the backend API. Supabase Auth is not active and must not replace the current login flow.
 
 Start the backend from the repository root before running the demo:
 
@@ -71,5 +75,6 @@ npm run test:watch
 
 - Dashboard metrics are derived from existing module endpoints; dedicated analytics endpoints are a future optimization.
 - Demo data reset is shown as disabled because no reset endpoint is available.
+- Supabase Auth is not active; Supabase is used as managed PostgreSQL and optional public frontend helpers only.
 - SENCE remains a backend-stubbed compliance workflow and does not call external SENCE services.
 - Certificate verification UI shows certificate records; public verification expansion remains available through backend contracts.
