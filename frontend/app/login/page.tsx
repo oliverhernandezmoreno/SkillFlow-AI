@@ -1,7 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight, BarChart3, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, BarChart3, KeyRound, ShieldCheck, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -10,6 +11,7 @@ import { FormField } from '@/components/forms/form-field';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { demoAccount } from '@/lib/constants/demo-account';
 import { login } from '@/lib/auth/session';
 import { loginSchema, type LoginFormValues } from '@/lib/validations/auth';
 
@@ -28,14 +30,20 @@ function LoginContent() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@skillflow-demo.example',
-      password: 'DemoPassword123',
+      email: '',
+      password: '',
     },
   });
+
+  function fillDemoAccount() {
+    setValue('email', demoAccount.email, { shouldValidate: true });
+    setValue('password', demoAccount.password, { shouldValidate: true });
+  }
 
   async function onSubmit(values: LoginFormValues) {
     setErrorMessage(null);
@@ -89,6 +97,20 @@ function LoginContent() {
               Sign in to manage training, compliance and workforce readiness.
             </p>
           </div>
+          <div className="mb-5 rounded-lg border bg-muted/45 p-3">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 rounded-md bg-primary/10 p-2 text-primary">
+                <KeyRound className="h-4 w-4" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">Demo access</p>
+                <p className="mt-1 truncate text-sm text-muted-foreground">{demoAccount.email}</p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={fillDemoAccount}>
+                Use demo
+              </Button>
+            </div>
+          </div>
           <form className="space-y-4" onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
             <FormField label="Email" htmlFor="email" error={errors.email?.message}>
               <Input id="email" autoComplete="email" {...register('email')} />
@@ -96,6 +118,11 @@ function LoginContent() {
             <FormField label="Password" htmlFor="password" error={errors.password?.message}>
               <Input id="password" type="password" autoComplete="current-password" {...register('password')} />
             </FormField>
+            <div className="flex justify-end">
+              <Link className="text-sm font-medium text-primary hover:underline" href="/forgot-password">
+                Forgot your password?
+              </Link>
+            </div>
             {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
             <Button className="w-full" disabled={isSubmitting}>
               {isSubmitting ? 'Signing in...' : 'Sign in'}

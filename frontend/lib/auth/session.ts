@@ -28,3 +28,23 @@ export async function logout() {
     useAuthStore.getState().logout();
   }
 }
+
+export async function forgotPassword(email: string) {
+  await apiRequest<void>('/auth/forgot-password', {
+    method: 'POST',
+    body: { email },
+    skipAuth: true,
+  });
+}
+
+export async function resetPassword(token: string, password: string) {
+  if (!token) {
+    throw new Error('Reset token is required.');
+  }
+
+  await apiRequest<void>('/auth/reset-password', {
+    method: 'POST',
+    body: { token, password },
+    skipAuth: true,
+  });
+}

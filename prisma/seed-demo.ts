@@ -9,7 +9,7 @@ const demoOrganization = {
   taxId: '76.555.444-0',
   legalName: 'SkillFlow Demo Mining SpA',
   tradeName: 'SkillFlow Demo',
-  email: 'admin@skillflow-demo.example',
+  email: 'admin@skillflow.demo',
 };
 
 async function main(): Promise<void> {
@@ -42,13 +42,13 @@ async function main(): Promise<void> {
     where: {
       organizationId_normalizedEmail: {
         organizationId: organization.id,
-        normalizedEmail: 'admin@skillflow-demo.example',
+        normalizedEmail: 'admin@skillflow.demo',
       },
     },
     update: {
       firstName: 'Demo',
       lastName: 'Admin',
-      email: 'admin@skillflow-demo.example',
+      email: 'admin@skillflow.demo',
       passwordHash,
       status: 'ACTIVE',
     },
@@ -56,8 +56,8 @@ async function main(): Promise<void> {
       organizationId: organization.id,
       firstName: 'Demo',
       lastName: 'Admin',
-      email: 'admin@skillflow-demo.example',
-      normalizedEmail: 'admin@skillflow-demo.example',
+      email: 'admin@skillflow.demo',
+      normalizedEmail: 'admin@skillflow.demo',
       passwordHash,
       status: 'ACTIVE',
     },

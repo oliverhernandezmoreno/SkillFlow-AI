@@ -4,9 +4,13 @@ import { MoreHorizontal } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
-export function ActionMenu() {
+interface ActionMenuProps {
+  onEdit?: () => void;
+}
+
+export function ActionMenu({ onEdit }: Readonly<ActionMenuProps>) {
   return (
-    <Button variant="ghost" size="icon" aria-label="Open row actions">
+    <Button variant="ghost" size="icon" aria-label="Edit row" onClick={onEdit}>
       <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
     </Button>
   );

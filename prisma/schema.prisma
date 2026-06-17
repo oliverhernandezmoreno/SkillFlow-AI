@@ -252,6 +252,7 @@ model User {
   notifications     Notification[]   @relation("UserNotifications")
   reportSnapshots   ReportSnapshot[] @relation("ReportSnapshotCreatedBy")
   auditEvents       AuditEvent[]     @relation("AuditEventActor")
+  passwordResetTokens PasswordResetToken[]
 
   /// MVP keeps strict uniqueness even across soft-deleted rows.
   /// Production may require a PostgreSQL partial unique index:
@@ -268,6 +269,25 @@ model User {
   @@index([organizationId, deletedAt])
   @@index([organizationId, status, createdAt])
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  ipAddress String?   @map("ip_address")
+  userAgent String?   @map("user_agent")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
+  @@index([createdAt])
+  @@map("password_reset_tokens")
 }
 
 model Role {

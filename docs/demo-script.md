@@ -1,6 +1,6 @@
 # Commercial Demo Script
 
-This script describes the backend-only v1.0 commercial demo. It intentionally avoids frontend, real SENCE integration, and AI features.
+This script describes the v1.0 commercial demo with the backend API and the frontend foundation. It intentionally avoids real SENCE integration, real email delivery, and AI features.
 
 ## Setup
 
@@ -30,18 +30,39 @@ This script describes the backend-only v1.0 commercial demo. It intentionally av
    npm run dev
    ```
 
+4. Run the frontend in a separate terminal.
+
+   ```bash
+   cd frontend
+   npm run dev -- --port 3001
+   ```
+
+   The frontend uses `NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1` for the local demo.
+
+## Demo Account
+
+Use the seeded non-production demo account:
+
+```text
+Email: admin@skillflow.demo
+Password: DemoPassword123
+```
+
+The login screen includes a demo helper that fills these credentials.
+
 ## Demo Flow
 
 1. Show the health endpoint at `GET /health`.
-2. Create or inspect the demo organization.
-3. Show the HR admin user and participant employee.
-4. Show the course catalog entry for `Operational Safety Essentials`.
-5. Show the 2026 annual training plan and its planned course item.
-6. Show the scheduled training session linked to the plan item.
-7. Show the participant enrollment and completed attendance.
-8. Show the closed knowledge evaluation and passed response.
-9. Show the issued certificate and verification code.
-10. Show the SENCE declaration created from the training session.
+2. Sign in to the frontend at `http://localhost:3001/login`.
+3. Open the dashboard and show KPIs derived from backend data.
+4. Show the HR admin user and participant employee.
+5. Show the course catalog entry for `Operational Safety Essentials`.
+6. Show the 2026 annual training plan and its planned course item.
+7. Show the scheduled training session linked to the plan item.
+8. Show the participant enrollment and completed attendance.
+9. Show the closed knowledge evaluation and passed response.
+10. Show the issued certificate and verification code.
+11. Show the SENCE declaration created from the training session.
 
 ## Verification
 
@@ -55,7 +76,9 @@ The E2E test applies Prisma migrations before running and refuses non-local data
 
 ## Boundaries
 
-- No frontend is included in this demo.
+- Frontend password recovery is currently a stub controlled by `NEXT_PUBLIC_ENABLE_PASSWORD_RESET=false`.
+- No real recovery email is sent.
+- No real reset token is issued until backend password reset endpoints exist.
 - SENCE remains a stubbed compliance workflow; it does not call external SENCE services.
 - AI recommendations are roadmap and are not implemented.
 - Demo data is not production data and must not be pointed at a production database.

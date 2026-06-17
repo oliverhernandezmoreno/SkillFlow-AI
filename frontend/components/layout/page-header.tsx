@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 
@@ -6,10 +7,11 @@ interface PageHeaderProps {
   title: string;
   description: string;
   actionLabel?: string;
+  action?: ReactNode;
   icon?: LucideIcon;
 }
 
-export function PageHeader({ title, description, actionLabel, icon: Icon }: Readonly<PageHeaderProps>) {
+export function PageHeader({ title, description, actionLabel, action, icon: Icon }: Readonly<PageHeaderProps>) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex gap-3">
@@ -23,7 +25,7 @@ export function PageHeader({ title, description, actionLabel, icon: Icon }: Read
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
         </div>
       </div>
-      {actionLabel ? <Button className="w-full sm:w-auto">{actionLabel}</Button> : null}
+      {action ?? (actionLabel ? <Button className="w-full sm:w-auto">{actionLabel}</Button> : null)}
     </div>
   );
 }

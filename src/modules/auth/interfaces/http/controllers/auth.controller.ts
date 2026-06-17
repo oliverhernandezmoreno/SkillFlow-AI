@@ -1,11 +1,18 @@
 import type { Request, Response } from 'express';
 
 import { asyncHandler } from '../../../../../shared/interfaces/http/async-handler.js';
-import type { LoginDto, RegisterDto } from '../../../application/dto/auth.dto.js';
+import type {
+  ForgotPasswordDto,
+  LoginDto,
+  RegisterDto,
+  ResetPasswordDto,
+} from '../../../application/dto/auth.dto.js';
+import type { ForgotPasswordUseCase } from '../../../application/use-cases/forgot-password.use-case.js';
 import type { GetCurrentUserUseCase } from '../../../application/use-cases/get-current-user.use-case.js';
 import type { LoginUseCase } from '../../../application/use-cases/login.use-case.js';
 import type { RefreshTokenUseCase } from '../../../application/use-cases/refresh-token.use-case.js';
 import type { RegisterOrganizationUseCase } from '../../../application/use-cases/register-organization.use-case.js';
+import type { ResetPasswordUseCase } from '../../../application/use-cases/reset-password.use-case.js';
 import type { AuthenticatedLocals } from '../auth-context.js';
 
 export class AuthController {
@@ -14,6 +21,8 @@ export class AuthController {
     private readonly loginUseCase: LoginUseCase,
     private readonly getCurrentUserUseCase: GetCurrentUserUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+    private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
   register = asyncHandler(async (request: Request, response: Response): Promise<void> => {
@@ -45,6 +54,22 @@ export class AuthController {
   });
 
   logout = asyncHandler(async (_request: Request, response: Response): Promise<void> => {
+    response.status(204).send();
+  });
+
+  forgotPassword = asyncHandler(async (request: Request, response: Response): Promise<void> => {
+    await this.forgotPasswordUseCase.execute(request.body as ForgotPasswordDto, {
+      ipAddress: request.ip ?? null,
+      userAgent: request.header('user-agent') ?? null,
+    });
+    response.status(204).send();
+  });
+
+  resetPassword = asyncHandler(async (request: Request, response: Response): Promise<void> => {
+    await this.resetPasswordUseCase.execute(request.body as ResetPasswordDto, {
+      ipAddress: request.ip ?? null,
+      userAgent: request.header('user-agent') ?? null,
+    });
     response.status(204).send();
   });
 }

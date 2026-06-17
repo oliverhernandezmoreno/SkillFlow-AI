@@ -4,6 +4,11 @@ import { describe, expect, it } from 'vitest';
 import type { PaginatedResult, PaginationInput } from '../../shared/application/pagination.js';
 import { registerSchema } from './interfaces/http/validators/auth.validators.js';
 import type { AuthIdentityRepository } from './domain/repositories/auth-identity.repository.js';
+import type {
+  PasswordResetTokenRecord,
+  PasswordResetTokenRepository,
+} from './domain/repositories/password-reset-token.repository.js';
+import type { EmailService, PasswordResetEmailInput } from './domain/services/email-service.js';
 import { RegisterOrganizationUseCase } from './application/use-cases/register-organization.use-case.js';
 import type { OrganizationRepository } from '../organizations/domain/repositories/organization.repository.js';
 import type { Organization } from '../organizations/domain/entities/organization.entity.js';
@@ -11,11 +16,14 @@ import type { UserRepository, UserSearchFilters } from '../users/domain/reposito
 import { User } from '../users/domain/entities/user.entity.js';
 import { NodePasswordHasher } from './infrastructure/services/node-password-hasher.js';
 import { JwtTokenService } from './infrastructure/services/jwt-token.service.js';
+import { ForgotPasswordUseCase } from './application/use-cases/forgot-password.use-case.js';
 import { LoginUseCase } from './application/use-cases/login.use-case.js';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case.js';
+import { ResetPasswordUseCase } from './application/use-cases/reset-password.use-case.js';
 import type { AuthenticatedLocals } from './interfaces/http/auth-context.js';
 import { requireAuth } from './interfaces/http/middlewares/require-auth.middleware.js';
 import { requirePermission } from './interfaces/http/middlewares/require-permission.middleware.js';
+import type { AuditLogger, AuditLogInput } from '../../shared/application/audit-logger.js';
 
 class FakeOrganizationRepository implements OrganizationRepository {
   organizations: Organization[] = [];
@@ -118,6 +126,71 @@ class FakeAuthIdentityRepository implements AuthIdentityRepository {
   }
 }
 
+class FakePasswordResetTokenRepository implements PasswordResetTokenRepository {
+  records: PasswordResetTokenRecord[] = [];
+
+  constructor(private readonly usersById: Map<string, User> = new Map()) {}
+
+  async invalidateActiveTokensForUser(userId: string, usedAt: Date): Promise<void> {
+    this.records = this.records.map((record) =>
+      record.userId === userId && record.usedAt === null && record.expiresAt > usedAt
+        ? { ...record, usedAt }
+        : record,
+    );
+  }
+
+  async save(input: {
+    userId: string;
+    tokenHash: string;
+    expiresAt: Date;
+    ipAddress: string | null;
+    userAgent: string | null;
+  }): Promise<PasswordResetTokenRecord> {
+    const user = this.usersById.get(input.userId);
+    const record: PasswordResetTokenRecord = {
+      id: `reset-${String(this.records.length + 1)}`,
+      userId: input.userId,
+      organizationId: user?.toPrimitives().organizationId ?? '',
+      tokenHash: input.tokenHash,
+      expiresAt: input.expiresAt,
+      usedAt: null,
+      createdAt: new Date(),
+      ipAddress: input.ipAddress,
+      userAgent: input.userAgent,
+    };
+    this.records.push(record);
+    return record;
+  }
+
+  async findActiveByTokenHash(tokenHash: string, now: Date): Promise<PasswordResetTokenRecord | null> {
+    return (
+      this.records.find((record) => {
+        return record.tokenHash === tokenHash && record.usedAt === null && record.expiresAt > now;
+      }) ?? null
+    );
+  }
+
+  async markUsed(id: string, usedAt: Date): Promise<void> {
+    this.records = this.records.map((record) => (record.id === id ? { ...record, usedAt } : record));
+  }
+}
+
+class FakeEmailService implements EmailService {
+  passwordResetEmails: PasswordResetEmailInput[] = [];
+
+  async sendPasswordReset(input: PasswordResetEmailInput): Promise<void> {
+    this.passwordResetEmails.push(input);
+  }
+}
+
+class FakeAuditLogger implements AuditLogger {
+  records: AuditLogInput[] = [];
+
+  async record(input: AuditLogInput): Promise<void> {
+    this.records.push(input);
+  }
+}
+
 const tokenService = new JwtTokenService({
   accessTokenSecret: 'test-access-token-secret',
   refreshTokenSecret: 'test-refresh-token-secret',
@@ -209,6 +282,110 @@ describe('Auth module', () => {
       email: 'admin@example.com',
       success: false,
     });
+  });
+
+  it('accepts forgot password for unknown email without sending email', async () => {
+    const emailService = new FakeEmailService();
+    const auditLogger = new FakeAuditLogger();
+
+    await new ForgotPasswordUseCase(
+      new FakeAuthIdentityRepository(null),
+      new FakePasswordResetTokenRepository(),
+      emailService,
+      auditLogger,
+    ).execute(
+      { email: 'missing@example.com' },
+      { ipAddress: '127.0.0.1', userAgent: 'test-agent' },
+    );
+
+    expect(emailService.passwordResetEmails).toHaveLength(0);
+    expect(auditLogger.records[0]?.action).toBe('PASSWORD_RESET_REQUESTED_UNKNOWN_EMAIL');
+  });
+
+  it('creates a one-time password reset token and invalidates older tokens', async () => {
+    const passwordHasher = new NodePasswordHasher();
+    const user = User.create({
+      organizationId: '1b1f1c99-90a5-458d-a22a-84519a7ce6d0',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      passwordHash: await passwordHasher.hash('password123'),
+    });
+    const tokenRepository = new FakePasswordResetTokenRepository(new Map([[user.id, user]]));
+    const emailService = new FakeEmailService();
+
+    const useCase = new ForgotPasswordUseCase(
+      new FakeAuthIdentityRepository(user),
+      tokenRepository,
+      emailService,
+      new FakeAuditLogger(),
+    );
+
+    await useCase.execute(
+      { email: 'admin@example.com' },
+      { ipAddress: '127.0.0.1', userAgent: 'test-agent' },
+    );
+    await useCase.execute(
+      { email: 'admin@example.com' },
+      { ipAddress: '127.0.0.1', userAgent: 'test-agent' },
+    );
+
+    expect(emailService.passwordResetEmails).toHaveLength(2);
+    expect(tokenRepository.records).toHaveLength(2);
+    expect(tokenRepository.records[0]?.usedAt).toBeInstanceOf(Date);
+    expect(tokenRepository.records[1]?.usedAt).toBeNull();
+    expect(tokenRepository.records[1]?.expiresAt.getTime()).toBeGreaterThan(Date.now());
+  });
+
+  it('resets a password once with a valid token', async () => {
+    const passwordHasher = new NodePasswordHasher();
+    const userRepository = new FakeUserRepository();
+    const user = User.create({
+      organizationId: '1b1f1c99-90a5-458d-a22a-84519a7ce6d0',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      passwordHash: await passwordHasher.hash('password123'),
+    });
+    userRepository.users.push(user);
+    const authIdentityRepository = new FakeAuthIdentityRepository(user);
+    const tokenRepository = new FakePasswordResetTokenRepository(new Map([[user.id, user]]));
+    const emailService = new FakeEmailService();
+
+    await new ForgotPasswordUseCase(
+      authIdentityRepository,
+      tokenRepository,
+      emailService,
+      new FakeAuditLogger(),
+    ).execute(
+      { email: 'admin@example.com' },
+      { ipAddress: '127.0.0.1', userAgent: 'test-agent' },
+    );
+
+    const resetToken = emailService.passwordResetEmails[0]?.resetToken;
+    expect(resetToken).toEqual(expect.any(String));
+
+    await new ResetPasswordUseCase(
+      tokenRepository,
+      userRepository,
+      passwordHasher,
+      new FakeAuditLogger(),
+    ).execute(
+      { token: resetToken ?? '', password: 'new-password-123' },
+      { ipAddress: '127.0.0.1', userAgent: 'test-agent' },
+    );
+
+    const updatedUser = userRepository.users[0];
+    expect(updatedUser).toBeDefined();
+    expect(await passwordHasher.verify('new-password-123', updatedUser?.toPrimitives().passwordHash ?? '')).toBe(
+      true,
+    );
+    await expect(
+      new ResetPasswordUseCase(tokenRepository, userRepository, passwordHasher).execute(
+        { token: resetToken ?? '', password: 'another-password-123' },
+        { ipAddress: null, userAgent: null },
+      ),
+    ).rejects.toThrow('Invalid or expired password reset token');
   });
 
   it('rejects a protected endpoint without a token', async () => {

@@ -70,6 +70,13 @@ npm run seed:demo
 
 The seed uses `DATABASE_URL_DEMO`, then `DATABASE_URL`, then the local default `postgresql://postgres:postgres@localhost:5433/skillflow?schema=public`.
 
+Demo credentials are non-production sample credentials:
+
+```text
+Email: admin@skillflow.demo
+Password: DemoPassword123
+```
+
 See `docs/demo-script.md` and `docs/rbac-matrix.md` for the demo walkthrough and permission matrix.
 
 ## Environment
@@ -100,15 +107,30 @@ Production startup fails if `DATABASE_URL`, `JWT_SECRET`, or `JWT_REFRESH_SECRET
 
 ## Local Development
 
+Start the backend API:
+
 ```bash
 npm install
 docker compose up -d
 npm run prisma:generate
 npm run prisma:validate
+npm run seed:demo
 npm run dev
 ```
 
 The API runs on `http://localhost:3000` by default.
+
+Start the frontend in a separate terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on `http://localhost:3001` when started with `npm run dev -- --port 3001`. It reads the API URL from `NEXT_PUBLIC_API_URL`, with `http://localhost:3000/api/v1` as the demo default.
+
+Password recovery screens are available at `/forgot-password` and `/reset-password`. They run in frontend stub mode while `NEXT_PUBLIC_ENABLE_PASSWORD_RESET=false`; no email is sent and no real reset token is issued until backend endpoints are implemented.
 
 ## Prisma
 

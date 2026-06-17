@@ -24,3 +24,12 @@ export interface TokenResponseDto {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface ForgotPasswordDto {
+  email: string;
+}
+
+export interface ResetPasswordDto {
+  token: string;
+  password: string;
+}
