@@ -15,6 +15,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prisma:generate": "prisma generate",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:validate": "DATABASE_URL=\"postgresql://postgres:postgres@localhost:5433/skillflow?schema=public\" prisma validate",
     "seed:demo": "DATABASE_URL=\"${DATABASE_URL_DEMO:-${DATABASE_URL:-postgresql://postgres:postgres@localhost:5433/skillflow?schema=public}}\" tsx prisma/seed-demo.ts"
   },

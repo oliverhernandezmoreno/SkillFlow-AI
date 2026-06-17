@@ -12,6 +12,61 @@ const demoOrganization = {
   email: 'admin@skillflow.demo',
 };
 
+const demoPermissionCodes = [
+  'organizations.read',
+  'organizations.update',
+  'users.read',
+  'users.create',
+  'users.update',
+  'employees.read',
+  'employees.create',
+  'employees.update',
+  'courses.read',
+  'courses.create',
+  'courses.update',
+  'training_plan.read',
+  'training_plan.create',
+  'training_plan.update',
+  'training_plan.approve',
+  'training_sessions.read',
+  'training_sessions.create',
+  'training_sessions.update',
+  'training_sessions.publish',
+  'enrollments.read',
+  'enrollments.create',
+  'enrollments.update',
+  'enrollments.confirm',
+  'enrollments.reject',
+  'enrollments.cancel',
+  'enrollments.complete',
+  'attendance.read',
+  'attendance.create',
+  'attendance.bulk',
+  'attendance.update',
+  'attendance.checkin',
+  'attendance.checkout',
+  'attendance.metrics',
+  'evaluations.read',
+  'evaluations.create',
+  'evaluations.update',
+  'evaluations.submit',
+  'evaluations.close',
+  'evaluations.result',
+  'certificates.read',
+  'certificates.issue',
+  'certificates.revoke',
+  'certificates.document',
+  'sence.read',
+  'sence.create',
+  'sence.update',
+  'sence.validate',
+  'sence.evidence',
+  'sence.ready',
+  'sence.submit',
+  'sence.status',
+  'sence.documents',
+] as const;
+
 async function main(): Promise<void> {
   const passwordHash = await bcrypt.hash('DemoPassword123', 10);
 
@@ -62,6 +117,82 @@ async function main(): Promise<void> {
       status: 'ACTIVE',
     },
   });
+
+  const adminRole = await prisma.role.upsert({
+    where: {
+      organizationId_code: {
+        organizationId: organization.id,
+        code: 'demo-admin',
+      },
+    },
+    update: {
+      name: 'Demo Administrator',
+      description: 'Administrative demo role for the public SkillFlow walkthrough.',
+      isSystem: true,
+    },
+    create: {
+      organizationId: organization.id,
+      code: 'demo-admin',
+      name: 'Demo Administrator',
+      description: 'Administrative demo role for the public SkillFlow walkthrough.',
+      isSystem: true,
+    },
+  });
+
+  const permissions = await Promise.all(
+    demoPermissionCodes.map((code) =>
+      prisma.permission.upsert({
+        where: { code },
+        update: {
+          name: toPermissionName(code),
+          description: `Allows ${code}.`,
+        },
+        create: {
+          code,
+          name: toPermissionName(code),
+          description: `Allows ${code}.`,
+        },
+      }),
+    ),
+  );
+
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: adminUser.id,
+        roleId: adminRole.id,
+      },
+    },
+    update: {
+      organizationId: organization.id,
+    },
+    create: {
+      organizationId: organization.id,
+      userId: adminUser.id,
+      roleId: adminRole.id,
+    },
+  });
+
+  await Promise.all(
+    permissions.map((permission) =>
+      prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: adminRole.id,
+            permissionId: permission.id,
+          },
+        },
+        update: {
+          organizationId: organization.id,
+        },
+        create: {
+          organizationId: organization.id,
+          roleId: adminRole.id,
+          permissionId: permission.id,
+        },
+      }),
+    ),
+  );
 
   const employee = await prisma.employee.upsert({
     where: {
@@ -304,6 +435,8 @@ async function main(): Promise<void> {
       {
         organizationId: organization.id,
         adminUserId: adminUser.id,
+        adminRoleId: adminRole.id,
+        permissionCount: permissions.length,
         employeeId: employee.id,
         courseId: course.id,
         trainingPlanId: trainingPlan.id,
@@ -326,3 +459,10 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+
+function toPermissionName(code: string): string {
+  return code
+    .split(/[._]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}

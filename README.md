@@ -135,6 +135,61 @@ Password recovery screens are available at `/forgot-password` and `/reset-passwo
 
 The v1.5 frontend demo experience includes a demo banner, guided checklist, persistent module filters, toast notifications, connected create/edit forms for priority operational resources, and basic frontend regression tests.
 
+## Deployment Demo
+
+Recommended public demo architecture:
+
+```text
+Vercel Frontend
+↓
+Render Backend
+↓
+Supabase PostgreSQL
+```
+
+Backend local commands:
+
+```bash
+npm install
+npm run build
+npm run dev
+```
+
+Frontend local commands:
+
+```bash
+cd frontend
+npm install
+npm run dev -- --port 3001
+```
+
+Production backend commands:
+
+```bash
+npm run build
+npm run start
+npm run prisma:migrate:deploy
+npm run seed:demo
+```
+
+Render backend settings:
+
+- Build command: `npm ci && npm run prisma:generate && npm run build`
+- Start command: `npm run start`
+- Health check path: `/health`
+- Required secrets: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`
+
+Vercel frontend settings:
+
+- Root directory: `frontend`
+- Build command: `npm run build`
+- Environment variable: `NEXT_PUBLIC_API_URL=https://tu-backend-render.onrender.com/api/v1`
+
+Deployment guides:
+
+- `docs/deployment-backend.md`
+- `docs/deployment-frontend.md`
+
 ## Prisma
 
 The canonical schema is `prisma/schema.prisma`.
