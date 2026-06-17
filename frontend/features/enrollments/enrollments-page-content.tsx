@@ -13,8 +13,9 @@ import { PageHeader } from '@/components/layout/page-header';
 import { SectionCard } from '@/components/layout/section-card';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
+import { Button } from '@/components/ui/button';
 import { useEmployees } from '@/hooks/use-employees';
-import { useEnrollments } from '@/hooks/use-enrollments';
+import { useCancelEnrollment, useCreateEnrollment, useEnrollments } from '@/hooks/use-enrollments';
 import { useTrainingSessions } from '@/hooks/use-training-sessions';
 import { formatDate } from '@/lib/utils/format';
 import { useAuthStore } from '@/stores/auth-store';
@@ -32,6 +33,8 @@ export function EnrollmentsPageContent() {
   const enrollmentsQuery = useEnrollments({ page: 1, pageSize: 50, status, organizationId });
   const employeesQuery = useEmployees({ page: 1, pageSize: 100, organizationId });
   const sessionsQuery = useTrainingSessions({ page: 1, pageSize: 100, organizationId });
+  const createEnrollment = useCreateEnrollment();
+  const cancelEnrollment = useCancelEnrollment();
   const enrollments = enrollmentsQuery.data?.data ?? [];
   const employeeById = useMemo(
     () =>
@@ -57,6 +60,20 @@ export function EnrollmentsPageContent() {
   const pending = enrollments.filter((enrollment) => enrollment.status === 'PENDING').length;
   const completed = enrollments.filter((enrollment) => enrollment.status === 'COMPLETED').length;
 
+  async function enrollFirstEmployee() {
+    const employee = employeesQuery.data?.data[0];
+    const session = sessionsQuery.data?.data.find((item) => ['PUBLISHED', 'SCHEDULED'].includes(item.status));
+    if (!organizationId || !employee || !session) {
+      return;
+    }
+
+    await createEnrollment.mutateAsync({
+      organizationId,
+      employeeId: employee.id,
+      trainingSessionId: session.id,
+    });
+  }
+
   const columns: Array<ColumnDef<EnrollmentRow>> = [
     { accessorKey: 'employeeName', header: 'Employee' },
     { accessorKey: 'sessionName', header: 'Session' },
@@ -71,6 +88,20 @@ export function EnrollmentsPageContent() {
       header: 'Status',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={row.original.status === 'CANCELLED' || cancelEnrollment.isPending}
+          onClick={() => void cancelEnrollment.mutate(row.original.id)}
+        >
+          Cancel
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -78,7 +109,11 @@ export function EnrollmentsPageContent() {
       <PageHeader
         title="Enrollments"
         description="Monitor participant confirmations, waitlists and completion progress."
-        actionLabel="Enroll participant"
+        action={
+          <Button onClick={() => void enrollFirstEmployee()} disabled={createEnrollment.isPending || !employeesQuery.data?.data[0]}>
+            {createEnrollment.isPending ? 'Enrolling...' : 'Enroll participant'}
+          </Button>
+        }
         icon={ListChecks}
       />
       <section className="grid gap-4 md:grid-cols-3">

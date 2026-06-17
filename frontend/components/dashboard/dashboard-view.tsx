@@ -1,7 +1,7 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertTriangle, Award, BadgeCheck, CalendarDays, FileCheck2, Plus, TrendingUp, Users } from 'lucide-react';
+import { AlertTriangle, Award, BookOpen, CalendarDays, ClipboardCheck, FileCheck2, Plus, TrendingUp, Users } from 'lucide-react';
 
 import { MetricChart } from '@/components/charts/metric-chart';
 import { ErrorState } from '@/components/feedback/error-state';
@@ -50,16 +50,18 @@ export function DashboardView() {
   const enrollments = dashboard.enrollments.data?.data ?? [];
   const attendance = dashboard.attendance.data?.data ?? [];
   const certificates = dashboard.certificates.data?.data ?? [];
+  const evaluations = dashboard.evaluations.data?.data ?? [];
   const senceDeclarations = dashboard.senceDeclarations.data?.data ?? [];
+  const activeCourses = courses.filter((course) => course.status === 'ACTIVE').length;
   const activeSessions = sessions.filter((session) =>
     ['SCHEDULED', 'PUBLISHED', 'IN_PROGRESS'].includes(session.status),
   );
-  const approvedEnrollments = enrollments.filter((enrollment) => enrollment.approved).length;
+  const evaluationsPassed = enrollments.filter((enrollment) => enrollment.approved).length;
   const averageAttendance =
     attendance.length > 0
       ? attendance.reduce((total, record) => total + (record.attendancePercentage ?? 0), 0) / attendance.length
       : 0;
-  const readySence = senceDeclarations.filter((declaration) => declaration.status === 'READY').length;
+  const readySence = senceDeclarations.filter((declaration) => ['READY', 'SUBMITTED', 'ACCEPTED'].includes(declaration.status)).length;
   const pacCompliance = courses.length > 0 ? Math.min((sessions.length / courses.length) * 100, 100) : 0;
   const criticalAlerts =
     enrollments.filter((enrollment) => ['PENDING', 'WAITLISTED'].includes(enrollment.status)).length +
@@ -99,13 +101,14 @@ export function DashboardView() {
     status: session.status,
   }));
   const executiveStats = [
-    { title: 'Active trainings', value: String(activeSessions.length), change: 'Scheduled, published or in progress', tone: 'indigo' as const, icon: CalendarDays },
-    { title: 'Participants enrolled', value: String(enrollments.length), change: `${employees.length} employees loaded`, tone: 'cyan' as const, icon: Users },
+    { title: 'Employees count', value: String(dashboard.employees.data?.meta.total ?? employees.length), change: 'Loaded from employees API', tone: 'indigo' as const, icon: Users },
+    { title: 'Active courses', value: String(activeCourses), change: 'Catalog entries available for planning', tone: 'cyan' as const, icon: BookOpen },
+    { title: 'Active sessions', value: String(activeSessions.length), change: 'Scheduled, published or in progress', tone: 'indigo' as const, icon: CalendarDays },
+    { title: 'Total enrollments', value: String(dashboard.enrollments.data?.meta.total ?? enrollments.length), change: `${employees.length} employees loaded`, tone: 'cyan' as const, icon: Users },
     { title: 'Average attendance', value: formatPercent(averageAttendance), change: 'Derived from attendance records', tone: 'emerald' as const, icon: TrendingUp },
-    { title: 'Approved evaluations', value: String(approvedEnrollments), change: 'Approved enrollment outcomes', tone: 'emerald' as const, icon: BadgeCheck },
+    { title: 'Evaluations passed', value: String(evaluationsPassed), change: `${evaluations.length} evaluations loaded`, tone: 'emerald' as const, icon: ClipboardCheck },
     { title: 'Certificates issued', value: String(certificates.length), change: 'Certificate records', tone: 'indigo' as const, icon: Award },
-    { title: 'SENCE ready', value: String(readySence), change: 'Declarations ready for submission', tone: 'cyan' as const, icon: FileCheck2 },
-    { title: 'PAC compliance', value: formatPercent(pacCompliance), change: 'Sessions against course catalog', tone: 'amber' as const, icon: TrendingUp },
+    { title: 'SENCE declarations', value: String(senceDeclarations.length), change: `${readySence} ready, submitted or accepted`, tone: 'amber' as const, icon: FileCheck2 },
     { title: 'Critical alerts', value: String(criticalAlerts), change: 'Pending, waitlisted or observed items', tone: 'rose' as const, icon: AlertTriangle },
   ];
 

@@ -245,13 +245,13 @@ model User {
   deletedAt       DateTime?  @map("deleted_at")
   version         Int        @default(1)
 
-  organization      Organization     @relation(fields: [organizationId], references: [id])
-  userRoles         UserRole[]
-  instructorProfile Instructor?
-  uploadedDocuments Document[]       @relation("UploadedDocuments")
-  notifications     Notification[]   @relation("UserNotifications")
-  reportSnapshots   ReportSnapshot[] @relation("ReportSnapshotCreatedBy")
-  auditEvents       AuditEvent[]     @relation("AuditEventActor")
+  organization        Organization         @relation(fields: [organizationId], references: [id])
+  userRoles           UserRole[]
+  instructorProfile   Instructor?
+  uploadedDocuments   Document[]           @relation("UploadedDocuments")
+  notifications       Notification[]       @relation("UserNotifications")
+  reportSnapshots     ReportSnapshot[]     @relation("ReportSnapshotCreatedBy")
+  auditEvents         AuditEvent[]         @relation("AuditEventActor")
   passwordResetTokens PasswordResetToken[]
 
   /// MVP keeps strict uniqueness even across soft-deleted rows.

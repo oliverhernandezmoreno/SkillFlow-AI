@@ -22,11 +22,20 @@ export const queryKeys = {
     lists: () => ['attendance'] as const,
     list: (filters: object) => ['attendance', filters] as const,
   },
+  evaluations: {
+    lists: () => ['evaluations'] as const,
+    list: (filters: object) => ['evaluations', filters] as const,
+  },
   certificates: {
     lists: () => ['certificates'] as const,
     list: (filters: object) => ['certificates', filters] as const,
   },
+  trainingPlans: {
+    lists: () => ['training-plans'] as const,
+    list: (filters: object) => ['training-plans', filters] as const,
+  },
   sence: {
+    lists: () => ['sence', 'declarations'] as const,
     declarations: (filters: object) => ['sence', 'declarations', filters] as const,
   },
 };

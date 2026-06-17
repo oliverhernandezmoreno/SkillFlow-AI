@@ -5,6 +5,7 @@ import { listCertificates } from '@/features/certificates/services';
 import { listCourses } from '@/features/courses/services';
 import { listEmployees } from '@/features/employees/services';
 import { listEnrollments } from '@/features/enrollments/services';
+import { listEvaluations } from '@/features/evaluations/services';
 import { listSenceDeclarations } from '@/features/sence/services';
 import { listTrainingSessions } from '@/features/sessions/services';
 import { queryKeys } from '@/lib/constants/query-keys';
@@ -39,13 +40,17 @@ export function useDashboardData() {
         queryFn: () => listCertificates(defaultFilters),
       },
       {
+        queryKey: queryKeys.evaluations.list(defaultFilters),
+        queryFn: () => listEvaluations(defaultFilters),
+      },
+      {
         queryKey: queryKeys.sence.declarations(defaultFilters),
         queryFn: () => listSenceDeclarations(defaultFilters),
       },
     ],
   });
 
-  const [employees, courses, trainingSessions, enrollments, attendance, certificates, senceDeclarations] =
+  const [employees, courses, trainingSessions, enrollments, attendance, certificates, evaluations, senceDeclarations] =
     results;
 
   return {
@@ -55,6 +60,7 @@ export function useDashboardData() {
     enrollments,
     attendance,
     certificates,
+    evaluations,
     senceDeclarations,
     isLoading: results.some((result) => result.isLoading),
     isError: results.some((result) => result.isError),

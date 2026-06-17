@@ -13,9 +13,10 @@ import { PageHeader } from '@/components/layout/page-header';
 import { SectionCard } from '@/components/layout/section-card';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
+import { Button } from '@/components/ui/button';
 import { useCourses } from '@/hooks/use-courses';
 import { useEnrollments } from '@/hooks/use-enrollments';
-import { useTrainingSessions } from '@/hooks/use-training-sessions';
+import { useCreateTrainingSession, usePublishTrainingSession, useTrainingSessions } from '@/hooks/use-training-sessions';
 import { formatDate } from '@/lib/utils/format';
 import { useAuthStore } from '@/stores/auth-store';
 import type { TrainingSession } from '@/types/resources';
@@ -32,6 +33,8 @@ export function TrainingSessionsPageContent() {
   const sessionsQuery = useTrainingSessions({ page: 1, pageSize: 50, status, organizationId });
   const coursesQuery = useCourses({ page: 1, pageSize: 100, organizationId });
   const enrollmentsQuery = useEnrollments({ page: 1, pageSize: 100, organizationId });
+  const createTrainingSession = useCreateTrainingSession();
+  const publishTrainingSession = usePublishTrainingSession();
   const sessions = sessionsQuery.data?.data ?? [];
   const enrollments = useMemo(() => enrollmentsQuery.data?.data ?? [], [enrollmentsQuery.data?.data]);
   const courseById = useMemo(
@@ -60,6 +63,28 @@ export function TrainingSessionsPageContent() {
     0,
   );
 
+  async function createFromFirstCourse() {
+    if (!organizationId || !coursesQuery.data?.data[0]) {
+      return;
+    }
+
+    const course = coursesQuery.data.data[0];
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() + 7);
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + Math.max(course.durationHours, 1));
+
+    await createTrainingSession.mutateAsync({
+      organizationId,
+      courseId: course.id,
+      name: `${course.name} session`,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      location: 'Main training room',
+      capacity: 20,
+    });
+  }
+
   const columns: Array<ColumnDef<TrainingSessionRow>> = [
     { accessorKey: 'name', header: 'Session' },
     { accessorKey: 'courseName', header: 'Course' },
@@ -70,6 +95,20 @@ export function TrainingSessionsPageContent() {
       header: 'Status',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={row.original.status !== 'SCHEDULED' || publishTrainingSession.isPending}
+          onClick={() => void publishTrainingSession.mutate(row.original.id)}
+        >
+          Publish
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -77,7 +116,11 @@ export function TrainingSessionsPageContent() {
       <PageHeader
         title="Training Sessions"
         description="Coordinate live training delivery with capacity, instructors and schedule readiness."
-        actionLabel="Schedule session"
+        action={
+          <Button onClick={() => void createFromFirstCourse()} disabled={createTrainingSession.isPending || (coursesQuery.data?.data.length ?? 0) === 0}>
+            {createTrainingSession.isPending ? 'Scheduling...' : 'Schedule session'}
+          </Button>
+        }
         icon={GraduationCap}
       />
       <section className="grid gap-4 md:grid-cols-3">
