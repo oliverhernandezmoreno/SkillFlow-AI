@@ -178,6 +178,7 @@ Render backend settings:
 - Start command: `npm run start`
 - Health check path: `/health`
 - Required secrets: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`
+- Temporary demo bootstrap: set `ENABLE_DEMO_BOOTSTRAP=true` and `BOOTSTRAP_SECRET`, call `POST /api/v1/system/bootstrap-demo`, then disable it again
 
 Vercel frontend settings:
 

@@ -29,3 +29,7 @@ services:
         value: 60000
       - key: RATE_LIMIT_MAX_REQUESTS
         value: 300
+      - key: ENABLE_DEMO_BOOTSTRAP
+        value: false
+      - key: BOOTSTRAP_SECRET
+        sync: false

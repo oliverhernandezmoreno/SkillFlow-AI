@@ -28,9 +28,12 @@ ALLOWED_ORIGINS="http://localhost:3001,https://skillflow-ai.vercel.app"
 JSON_PAYLOAD_LIMIT="1mb"
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=300
+ENABLE_DEMO_BOOTSTRAP=false
+BOOTSTRAP_SECRET="temporary-strong-bootstrap-secret"
 ```
 
 Production startup fails fast when `DATABASE_URL`, `JWT_SECRET`, or `JWT_REFRESH_SECRET` is missing.
+`ENABLE_DEMO_BOOTSTRAP` should stay `false` except during a temporary Render Free demo initialization.
 
 ## Supabase PostgreSQL
 
@@ -88,6 +91,33 @@ npm run seed:demo
 ```
 
 For Render, run `npm run prisma:migrate:deploy` and `npm run seed:demo` from a one-off shell or job after the service environment variables are configured.
+
+## Temporary Render Free Demo Bootstrap
+
+Render Free may not provide convenient SSH access. A temporary HTTP bootstrap endpoint is available only when all conditions pass:
+
+- `NODE_ENV=production`
+- `ENABLE_DEMO_BOOTSTRAP=true`
+- `BOOTSTRAP_SECRET` is configured
+- Request includes header `x-bootstrap-secret`
+
+Call it after migrations are deployed:
+
+```bash
+curl -X POST \
+  https://TU-BACKEND-RENDER.onrender.com/api/v1/system/bootstrap-demo \
+  -H "x-bootstrap-secret: TU_BOOTSTRAP_SECRET"
+```
+
+The endpoint is idempotent and returns identifiers for the demo organization, user, role, employee, course, session, enrollment, attendance record, evaluation, certificate, and SENCE declaration. It also records an audit event.
+
+Disable it immediately after successful bootstrap:
+
+```env
+ENABLE_DEMO_BOOTSTRAP=false
+```
+
+Do not expose or reuse `BOOTSTRAP_SECRET`; rotate it after temporary use.
 
 ## Health Validation
 
