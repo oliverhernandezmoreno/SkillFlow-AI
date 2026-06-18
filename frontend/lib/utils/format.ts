@@ -1,11 +1,11 @@
 export function formatDate(value: string | null | undefined) {
   if (!value) {
-    return 'Not scheduled';
+    return 'Sin fecha';
   }
 
-  return new Intl.DateTimeFormat('en', {
-    month: 'short',
-    day: 'numeric',
+  return new Intl.DateTimeFormat('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
     year: 'numeric',
   }).format(new Date(value));
 }
@@ -15,7 +15,7 @@ export function formatPercent(value: number) {
 }
 
 export function formatCurrency(value: number) {
-  return new Intl.NumberFormat('en', {
+  return new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
     maximumFractionDigits: 0,

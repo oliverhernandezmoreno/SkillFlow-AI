@@ -84,28 +84,28 @@ function AttendancePageContent() {
           method: 'MANUAL',
         })),
       });
-      showToast({ title: 'Attendance recorded', description: 'Bulk attendance was synced with the backend.', tone: 'success' });
+      showToast({ title: 'Asistencia registrada', description: 'La asistencia masiva quedó sincronizada con el backend.', tone: 'success' });
     } catch (error) {
-      showApiError(error, 'Unable to record attendance');
+      showApiError(error, 'No se pudo registrar asistencia');
     }
   }
 
   const columns: Array<ColumnDef<AttendanceRecord>> = [
     {
       accessorKey: 'trainingSessionId',
-      header: 'Session',
+      header: 'Sesión',
       cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? row.original.trainingSessionId,
     },
-    { accessorKey: 'employeeId', header: 'Employee' },
-    { accessorKey: 'method', header: 'Method' },
+    { accessorKey: 'employeeId', header: 'Colaborador' },
+    { accessorKey: 'method', header: 'Método' },
     {
       accessorKey: 'attendancePercentage',
-      header: 'Percentage',
+      header: 'Porcentaje',
       cell: ({ row }) => formatPercent(row.original.attendancePercentage ?? 0),
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
   ];
@@ -113,31 +113,31 @@ function AttendancePageContent() {
   return (
     <div className="space-y-6">
         <PageHeader
-          title="Attendance"
-          description="Capture attendance evidence, QR check-ins and completion signals for certification."
+          title="Asistencia"
+          description="Registra evidencia de asistencia, check-ins y señales de finalización para certificación."
           action={
             <Button onClick={() => void markFirstSessionPresent()} disabled={bulkAttendance.isPending || sessions.length === 0}>
-              {bulkAttendance.isPending ? 'Recording...' : 'Bulk mark present'}
+              {bulkAttendance.isPending ? 'Registrando...' : 'Marcar presentes'}
             </Button>
           }
           icon={CalendarCheck}
         />
         <section className="grid gap-4 md:grid-cols-3">
-          <StatCard title="Records" value={String(attendanceQuery.data?.meta.total ?? records.length)} change="Live attendance API" tone="indigo" icon={ClipboardList} />
-          <StatCard title="Average attendance" value={formatPercent(averageAttendance)} change="Derived from records" tone="emerald" icon={Percent} />
-          <StatCard title="Present" value={String(presentRecords)} change="Manual and digital records" tone="cyan" icon={CheckCircle2} />
+          <StatCard title="Registros" value={String(attendanceQuery.data?.meta.total ?? records.length)} change="API de asistencia en vivo" tone="indigo" icon={ClipboardList} />
+          <StatCard title="Asistencia promedio" value={formatPercent(averageAttendance)} change="Calculada desde registros" tone="emerald" icon={Percent} />
+          <StatCard title="Presentes" value={String(presentRecords)} change="Registros manuales y digitales" tone="cyan" icon={CheckCircle2} />
         </section>
         <FilterBar
           statusValue={filters.status}
           statusOptions={['PRESENT', 'ABSENT', 'LATE', 'EXCUSED', 'INCOMPLETE']}
           onStatusChange={(status) => setFilters({ status, page: 1 })}
         />
-        <SectionCard title="Attendance overview" description="Attendance records grouped by session and participant.">
+        <SectionCard title="Vista de asistencia" description="Registros agrupados por sesión y participante.">
           {attendanceQuery.isLoading ? <LoadingSkeleton /> : null}
           {attendanceQuery.isError ? <ErrorState onAction={() => void attendanceQuery.refetch()} /> : null}
           {!attendanceQuery.isLoading && !attendanceQuery.isError && records.length > 0 ? <DataTable columns={columns} data={records} /> : null}
           {!attendanceQuery.isLoading && !attendanceQuery.isError && records.length === 0 ? (
-            <EmptyState icon={CalendarCheck} title="No attendance records found" description="Use bulk mark present after enrollments exist for a scheduled session." actionLabel="Record attendance" />
+            <EmptyState icon={CalendarCheck} title="No se encontraron registros de asistencia" description="Usa marcar presentes cuando existan inscripciones para una sesión programada." actionLabel="Registrar asistencia" />
           ) : null}
         </SectionCard>
     </div>

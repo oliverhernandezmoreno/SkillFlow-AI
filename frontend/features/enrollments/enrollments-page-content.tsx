@@ -90,24 +90,24 @@ export function EnrollmentsPageContent() {
   async function cancel(enrollmentId: string) {
     try {
       await cancelEnrollment.mutateAsync(enrollmentId);
-      showToast({ title: 'Enrollment cancelled', description: 'The participant status was updated.', tone: 'success' });
+      showToast({ title: 'Inscripción cancelada', description: 'El estado del participante fue actualizado.', tone: 'success' });
     } catch (error) {
-      showApiError(error, 'Unable to cancel enrollment');
+      showApiError(error, 'No se pudo cancelar la inscripción');
     }
   }
 
   const columns: Array<ColumnDef<EnrollmentRow>> = [
-    { accessorKey: 'employeeName', header: 'Employee' },
-    { accessorKey: 'sessionName', header: 'Session' },
-    { accessorKey: 'enrolledDate', header: 'Enrolled' },
+    { accessorKey: 'employeeName', header: 'Colaborador' },
+    { accessorKey: 'sessionName', header: 'Sesión' },
+    { accessorKey: 'enrolledDate', header: 'Inscripción' },
     {
       accessorKey: 'completionPercentage',
-      header: 'Progress',
+      header: 'Avance',
       cell: ({ row }) => `${row.original.completionPercentage ?? 0}%`,
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
@@ -120,7 +120,7 @@ export function EnrollmentsPageContent() {
           disabled={row.original.status === 'CANCELLED' || cancelEnrollment.isPending}
           onClick={() => void cancel(row.original.id)}
         >
-          Cancel
+          Cancelar
         </Button>
       ),
     },
@@ -129,8 +129,8 @@ export function EnrollmentsPageContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Enrollments"
-        description="Monitor participant confirmations, waitlists and completion progress."
+        title="Inscripciones"
+        description="Monitorea confirmaciones, listas de espera y avance de participantes."
         action={
           <EnrollmentFormDialog
             employees={employeesQuery.data?.data ?? []}
@@ -141,23 +141,23 @@ export function EnrollmentsPageContent() {
         icon={ListChecks}
       />
       <section className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Confirmed" value={String(confirmed)} change="Backend enrollment status" tone="emerald" icon={UserCheck} />
-        <StatCard title="Pending" value={String(pending)} change="Approval queue" tone="amber" icon={UsersRound} />
-        <StatCard title="Completed" value={String(completed)} change="Ready for certificate checks" tone="indigo" icon={UserRoundCheck} />
+        <StatCard title="Confirmadas" value={String(confirmed)} change="Estado de inscripción backend" tone="emerald" icon={UserCheck} />
+        <StatCard title="Pendientes" value={String(pending)} change="Cola de aprobación" tone="amber" icon={UsersRound} />
+        <StatCard title="Completadas" value={String(completed)} change="Listas para certificados" tone="indigo" icon={UserRoundCheck} />
       </section>
       <FilterBar
         statusValue={filters.status}
         statusOptions={['PENDING', 'CONFIRMED', 'WAITLISTED', 'ENROLLED', 'CANCELLED', 'COMPLETED', 'FAILED']}
         onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
-      <SectionCard title="Enrollments overview" description="Live enrollment records enriched with employee and session names.">
+      <SectionCard title="Vista de inscripciones" description="Registros en vivo enriquecidos con colaborador y sesión.">
         {enrollmentsQuery.isLoading ? <LoadingSkeleton /> : null}
         {enrollmentsQuery.isError ? <ErrorState onAction={() => void enrollmentsQuery.refetch()} /> : null}
         {!enrollmentsQuery.isLoading && !enrollmentsQuery.isError && rows.length > 0 ? (
           <DataTable columns={columns} data={rows} />
         ) : null}
         {!enrollmentsQuery.isLoading && !enrollmentsQuery.isError && rows.length === 0 ? (
-          <EmptyState icon={ListChecks} title="No enrollments found" description="Enroll employees into published sessions to begin attendance and evaluation tracking." actionLabel="Enroll participant" />
+          <EmptyState icon={ListChecks} title="No se encontraron inscripciones" description="Inscribe colaboradores en sesiones publicadas para iniciar asistencia y evaluación." actionLabel="Inscribir participante" />
         ) : null}
       </SectionCard>
     </div>

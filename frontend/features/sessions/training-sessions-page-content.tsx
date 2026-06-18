@@ -68,7 +68,7 @@ export function TrainingSessionsPageContent() {
     const enrollmentCount = enrollmentCountBySession.get(session.id) ?? 0;
     return {
       ...session,
-      courseName: courseById.get(session.courseId) ?? 'Unassigned course',
+      courseName: courseById.get(session.courseId) ?? 'Curso sin asignar',
       seats: `${enrollmentCount}/${session.capacity}`,
       dateRange: `${formatDate(session.startDate)} - ${formatDate(session.endDate)}`,
     };
@@ -114,20 +114,20 @@ export function TrainingSessionsPageContent() {
   async function publish(trainingSessionId: string) {
     try {
       await publishTrainingSession.mutateAsync(trainingSessionId);
-      showToast({ title: 'Session published', description: 'The session is visible for enrollment workflows.', tone: 'success' });
+      showToast({ title: 'Sesión publicada', description: 'La sesión está visible para flujos de inscripción.', tone: 'success' });
     } catch (error) {
-      showApiError(error, 'Unable to publish session');
+      showApiError(error, 'No se pudo publicar la sesión');
     }
   }
 
   const columns: Array<ColumnDef<TrainingSessionRow>> = [
-    { accessorKey: 'name', header: 'Session' },
-    { accessorKey: 'courseName', header: 'Course' },
-    { accessorKey: 'dateRange', header: 'Dates' },
-    { accessorKey: 'seats', header: 'Seats' },
+    { accessorKey: 'name', header: 'Sesión' },
+    { accessorKey: 'courseName', header: 'Curso' },
+    { accessorKey: 'dateRange', header: 'Fechas' },
+    { accessorKey: 'seats', header: 'Cupos' },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
@@ -147,7 +147,7 @@ export function TrainingSessionsPageContent() {
             disabled={row.original.status !== 'SCHEDULED' || publishTrainingSession.isPending}
             onClick={() => void publish(row.original.id)}
           >
-            Publish
+            Publicar
           </Button>
         </div>
       ),
@@ -157,31 +157,31 @@ export function TrainingSessionsPageContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Training Sessions"
-        description="Coordinate live training delivery with capacity, instructors and schedule readiness."
+        title="Sesiones"
+        description="Coordina la ejecución de capacitación con capacidad, relatores y agenda."
         action={
           <TrainingSessionFormDialog mode="create" courses={coursesQuery.data?.data ?? []} onSubmit={create} />
         }
         icon={GraduationCap}
       />
       <section className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Loaded sessions" value={String(sessionsQuery.data?.meta.total ?? 0)} change="From backend API" tone="indigo" icon={CalendarDays} />
-        <StatCard title="Available seats" value={String(availableSeats)} change="Derived from enrollments" tone="cyan" icon={Users} />
-        <StatCard title="Upcoming" value={String(upcoming)} change="Based on start dates" tone="slate" icon={MapPin} />
+        <StatCard title="Sesiones cargadas" value={String(sessionsQuery.data?.meta.total ?? 0)} change="Desde la API backend" tone="indigo" icon={CalendarDays} />
+        <StatCard title="Cupos disponibles" value={String(availableSeats)} change="Derivado de inscripciones" tone="cyan" icon={Users} />
+        <StatCard title="Próximas" value={String(upcoming)} change="Según fechas de inicio" tone="slate" icon={MapPin} />
       </section>
       <FilterBar
         statusValue={filters.status}
         statusOptions={['DRAFT', 'SCHEDULED', 'PUBLISHED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'CLOSED']}
         onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
-      <SectionCard title="Training Sessions overview" description="Live sessions with derived capacity usage.">
+      <SectionCard title="Vista de sesiones" description="Sesiones en vivo con uso de capacidad calculado.">
         {sessionsQuery.isLoading ? <LoadingSkeleton /> : null}
         {sessionsQuery.isError ? <ErrorState onAction={() => void sessionsQuery.refetch()} /> : null}
         {!sessionsQuery.isLoading && !sessionsQuery.isError && rows.length > 0 ? (
           <DataTable columns={columns} data={rows} />
         ) : null}
         {!sessionsQuery.isLoading && !sessionsQuery.isError && rows.length === 0 ? (
-          <EmptyState icon={GraduationCap} title="No training sessions found" description="Schedule sessions from active courses to open enrollments and attendance workflows." actionLabel="Schedule session" />
+          <EmptyState icon={GraduationCap} title="No se encontraron sesiones" description="Programa sesiones desde cursos activos para habilitar inscripciones y asistencia." actionLabel="Programar sesión" />
         ) : null}
       </SectionCard>
     </div>

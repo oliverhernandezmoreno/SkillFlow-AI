@@ -2,6 +2,8 @@
 
 Next.js frontend for the SkillFlow AI commercial demo. The app is connected to the backend through the OpenAPI-aligned REST surface and is optimized for the demo flow across HR operations, training, compliance, certificates, and SENCE.
 
+The interface is Spanish-first for Chile/LatAm and positions SkillFlow AI as a premium SaaS HRTech demo for training, SENCE readiness, and certification workflows.
+
 ## Stack
 
 - Next.js
@@ -51,6 +53,8 @@ npm run dev
 ```text
 Email: admin@skillflow.demo
 Password: DemoPassword123
+Name: Demo Admin
+Visible role: Administrador RRHH
 ```
 
 The login screen can fill the demo credentials automatically. Protected pages include a demo banner, backend connection status, and a guided checklist for the commercial flow.
@@ -58,9 +62,14 @@ The login screen can fill the demo credentials automatically. Protected pages in
 ## Demo Flow
 
 ```text
-Login -> Dashboard -> Employees -> Courses -> Training Sessions -> Enrollments
--> Attendance -> Evaluations -> Certificates -> SENCE
+Ingresar -> Panel de Control -> Colaboradores -> Cursos -> Sesiones
+-> Inscripciones -> Asistencia -> Evaluaciones -> Certificados -> SENCE
 ```
+
+Documented public demo URLs:
+
+- Frontend Vercel: `https://skillflow-ai.vercel.app` when configured in Vercel.
+- Backend Render API: `https://tu-backend-render.onrender.com/api/v1` placeholder; replace with the real Render URL through `NEXT_PUBLIC_API_URL`.
 
 ## Quality Commands
 

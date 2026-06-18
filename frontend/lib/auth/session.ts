@@ -39,7 +39,7 @@ export async function forgotPassword(email: string) {
 
 export async function resetPassword(token: string, password: string) {
   if (!token) {
-    throw new Error('Reset token is required.');
+    throw new Error('Se requiere un token de recuperación.');
   }
 
   await apiRequest<void>('/auth/reset-password', {

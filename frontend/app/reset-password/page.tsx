@@ -16,7 +16,7 @@ import { resetPasswordSchema, type ResetPasswordFormValues } from '@/lib/validat
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<main className="grid min-h-screen place-items-center">Loading...</main>}>
+    <Suspense fallback={<main className="grid min-h-screen place-items-center">Cargando...</main>}>
       <ResetPasswordContent />
     </Suspense>
   );
@@ -54,41 +54,41 @@ function ResetPasswordContent() {
       <Card className="mx-auto w-full max-w-md p-6 shadow-soft">
         <Link className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground" href="/login">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to sign in
+          Volver al ingreso
         </Link>
         <div className="mb-6">
           <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <LockKeyhole className="h-5 w-5" aria-hidden="true" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-normal">Set a new password</h1>
+          <h1 className="text-2xl font-semibold tracking-normal">Crear nueva contraseña</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose a new password to recover access to your account.
+            Elige una nueva contraseña para recuperar el acceso a tu cuenta.
           </p>
         </div>
         {!token ? (
           <p className="mb-4 rounded-md border bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-            A reset token is required to continue.
+            Se requiere un token de recuperación para continuar.
           </p>
         ) : null}
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
-          <FormField label="New password" htmlFor="password" error={errors.password?.message}>
+          <FormField label="Nueva contraseña" htmlFor="password" error={errors.password?.message}>
             <Input id="password" type="password" autoComplete="new-password" {...register('password')} />
           </FormField>
-          <FormField label="Confirm password" htmlFor="confirmPassword" error={errors.confirmPassword?.message}>
+          <FormField label="Confirmar contraseña" htmlFor="confirmPassword" error={errors.confirmPassword?.message}>
             <Input id="confirmPassword" type="password" autoComplete="new-password" {...register('confirmPassword')} />
           </FormField>
           {status === 'success' ? (
             <p className="rounded-md border bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-              Password updated. You can sign in with the new password.
+              Contraseña actualizada. Ya puedes ingresar con la nueva contraseña.
             </p>
           ) : null}
           {status === 'error' ? (
             <p className="rounded-md border bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-              Unable to reset the password with the current token.
+              No se pudo restablecer la contraseña con el token actual.
             </p>
           ) : null}
           <Button className="w-full" disabled={isSubmitting || !token}>
-            {isSubmitting ? 'Updating...' : 'Update password'}
+            {isSubmitting ? 'Actualizando...' : 'Actualizar contraseña'}
           </Button>
         </form>
       </Card>

@@ -63,24 +63,24 @@ function CertificatesPageContent() {
 
     try {
       await issueCertificate.mutateAsync({ enrollmentId: eligibleEnrollment.id });
-      showToast({ title: 'Certificate issued', description: 'The certificate was created and can be verified.', tone: 'success' });
+      showToast({ title: 'Certificado emitido', description: 'El certificado fue creado y puede verificarse.', tone: 'success' });
     } catch (error) {
-      showApiError(error, 'Unable to issue certificate');
+      showApiError(error, 'No se pudo emitir el certificado');
     }
   }
 
   const columns: Array<ColumnDef<Certificate>> = [
-    { accessorKey: 'certificateNumber', header: 'Certificate number' },
-    { accessorKey: 'employeeId', header: 'Employee' },
-    { accessorKey: 'trainingSessionId', header: 'Session' },
+    { accessorKey: 'certificateNumber', header: 'Número de certificado' },
+    { accessorKey: 'employeeId', header: 'Colaborador' },
+    { accessorKey: 'trainingSessionId', header: 'Sesión' },
     {
       accessorKey: 'issuedAt',
-      header: 'Issued',
+      header: 'Emisión',
       cell: ({ row }) => formatDate(row.original.issuedAt),
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
   ];
@@ -88,31 +88,31 @@ function CertificatesPageContent() {
   return (
     <div className="space-y-6">
         <PageHeader
-          title="Certificates"
-          description="Issue, verify and monitor certificate eligibility across completed training sessions."
+          title="Certificados"
+          description="Emite, verifica y monitorea elegibilidad de certificados en sesiones finalizadas."
           action={
             <Button onClick={() => void issueFromEnrollment()} disabled={issueCertificate.isPending || !eligibleEnrollment}>
-              {issueCertificate.isPending ? 'Issuing...' : 'Issue certificate'}
+              {issueCertificate.isPending ? 'Emitiendo...' : 'Emitir certificado'}
             </Button>
           }
           icon={Award}
         />
         <section className="grid gap-4 md:grid-cols-3">
-          <StatCard title="Issued" value={String(issued)} change="Live certificate records" tone="emerald" icon={BadgeCheck} />
-          <StatCard title="Eligibility source" value={String(enrollments.length)} change="Enrollment records available" tone="amber" icon={FileClock} />
-          <StatCard title="Revoked" value={String(revoked)} change="Revocation state from backend" tone="rose" icon={ShieldCheck} />
+          <StatCard title="Emitidos" value={String(issued)} change="Registros de certificados en vivo" tone="emerald" icon={BadgeCheck} />
+          <StatCard title="Fuente elegible" value={String(enrollments.length)} change="Inscripciones disponibles" tone="amber" icon={FileClock} />
+          <StatCard title="Revocados" value={String(revoked)} change="Estado de revocación backend" tone="rose" icon={ShieldCheck} />
         </section>
         <FilterBar
           statusValue={filters.status}
           statusOptions={['DRAFT', 'ISSUED', 'REVOKED', 'EXPIRED']}
           onStatusChange={(status) => setFilters({ status, page: 1 })}
         />
-        <SectionCard title="Certificates overview" description="Issued certificates with verification codes and lifecycle state.">
+        <SectionCard title="Vista de certificados" description="Certificados emitidos con códigos de verificación y estado.">
           {certificatesQuery.isLoading ? <LoadingSkeleton /> : null}
           {certificatesQuery.isError ? <ErrorState onAction={() => void certificatesQuery.refetch()} /> : null}
           {!certificatesQuery.isLoading && !certificatesQuery.isError && certificates.length > 0 ? <DataTable columns={columns} data={certificates} /> : null}
           {!certificatesQuery.isLoading && !certificatesQuery.isError && certificates.length === 0 ? (
-            <EmptyState icon={Award} title="No certificates found" description="Issue certificates once completion, attendance and evaluation requirements are satisfied." actionLabel="Issue certificate" />
+            <EmptyState icon={Award} title="No se encontraron certificados" description="Emite certificados cuando se cumplan requisitos de avance, asistencia y evaluación." actionLabel="Emitir certificado" />
           ) : null}
         </SectionCard>
     </div>

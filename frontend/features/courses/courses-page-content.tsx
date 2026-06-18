@@ -66,17 +66,17 @@ export function CoursesPageContent() {
   }
 
   const columns: Array<ColumnDef<Course>> = [
-    { accessorKey: 'code', header: 'Code' },
-    { accessorKey: 'name', header: 'Name' },
-    { accessorKey: 'modality', header: 'Modality' },
+    { accessorKey: 'code', header: 'Código' },
+    { accessorKey: 'name', header: 'Nombre' },
+    { accessorKey: 'modality', header: 'Modalidad' },
     {
       accessorKey: 'durationHours',
-      header: 'Duration',
+      header: 'Duración',
       cell: ({ row }) => `${row.original.durationHours}h`,
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
@@ -89,15 +89,15 @@ export function CoursesPageContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Courses"
-        description="Manage the course catalog that powers annual plans, sessions and certification flows."
+        title="Cursos"
+        description="Gestiona el catálogo que alimenta planes anuales, sesiones y certificaciones."
         action={<CourseFormDialog mode="create" onSubmit={create} />}
         icon={BookOpen}
       />
       <section className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Loaded courses" value={String(coursesQuery.data?.meta.total ?? 0)} change="From backend API" tone="indigo" icon={LibraryBig} />
-        <StatCard title="Active courses" value={String(activeCourses)} change="Available for planning" tone="emerald" icon={Sparkles} />
-        <StatCard title="Average duration" value={`${averageDuration.toFixed(1)}h`} change="Current page average" tone="cyan" icon={Clock3} />
+        <StatCard title="Cursos cargados" value={String(coursesQuery.data?.meta.total ?? 0)} change="Desde la API backend" tone="indigo" icon={LibraryBig} />
+        <StatCard title="Cursos activos" value={String(activeCourses)} change="Disponibles para planificación" tone="emerald" icon={Sparkles} />
+        <StatCard title="Duración promedio" value={`${averageDuration.toFixed(1)}h`} change="Promedio de la página actual" tone="cyan" icon={Clock3} />
       </section>
       <FilterBar
         searchValue={filters.search}
@@ -106,18 +106,18 @@ export function CoursesPageContent() {
         onSearchChange={(search) => setFilters({ search, page: 1 })}
         onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
-      <SectionCard title="Courses overview" description="Live catalog records from the SkillFlow backend.">
+      <SectionCard title="Vista de cursos" description="Registros en vivo del catálogo SkillFlow.">
         {coursesQuery.isLoading ? <LoadingSkeleton /> : null}
         {coursesQuery.isError ? <ErrorState onAction={() => void coursesQuery.refetch()} /> : null}
         {!coursesQuery.isLoading && !coursesQuery.isError && courses.length > 0 ? (
           <DataTable columns={columns} data={courses} />
         ) : null}
         {!coursesQuery.isLoading && !coursesQuery.isError && courses.length === 0 ? (
-          <EmptyState icon={BookOpen} title="No courses found" description="Publish your first course to unlock sessions, enrollments and certificates." actionLabel="Create course" />
+          <EmptyState icon={BookOpen} title="No se encontraron cursos" description="Publica el primer curso para habilitar sesiones, inscripciones y certificados." actionLabel="Crear curso" />
         ) : null}
       </SectionCard>
       {courses.length > 0 ? (
-        <SectionCard title="Catalog mix" description="Duration profile for the current backend result set.">
+        <SectionCard title="Mix de catálogo" description="Perfil de duración para los resultados actuales del backend.">
           <MetricChart data={courses.slice(0, 6).map((course) => ({ name: course.code, value: course.durationHours }))} dataKey="value" type="bar" />
         </SectionCard>
       ) : null}

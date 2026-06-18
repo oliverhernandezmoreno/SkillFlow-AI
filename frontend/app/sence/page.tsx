@@ -65,9 +65,9 @@ function SencePageContent() {
 
     try {
       await createDeclaration.mutateAsync({ trainingSessionId: sessions[0].id });
-      showToast({ title: 'SENCE declaration created', description: 'The declaration wizard is ready for validation.', tone: 'success' });
+      showToast({ title: 'Declaración SENCE creada', description: 'La declaración está lista para validación.', tone: 'success' });
     } catch (error) {
-      showApiError(error, 'Unable to create SENCE declaration');
+      showApiError(error, 'No se pudo crear la declaración SENCE');
     }
   }
 
@@ -75,30 +75,30 @@ function SencePageContent() {
     try {
       await senceActions[action].mutateAsync(declarationId);
       showToast({
-        title: action === 'validate' ? 'SENCE validation complete' : action === 'ready' ? 'Declaration marked ready' : 'Declaration submitted',
-        description: 'The declaration state was updated in the backend workflow.',
+        title: action === 'validate' ? 'Validación SENCE completa' : action === 'ready' ? 'Declaración marcada como lista' : 'Declaración enviada',
+        description: 'El estado de la declaración fue actualizado en el backend.',
         tone: 'success',
       });
     } catch (error) {
-      showApiError(error, 'SENCE action failed');
+      showApiError(error, 'La acción SENCE falló');
     }
   }
 
   const columns: Array<ColumnDef<SenceDeclaration>> = [
     {
       accessorKey: 'trainingSessionId',
-      header: 'Session',
+      header: 'Sesión',
       cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? row.original.trainingSessionId,
     },
-    { accessorKey: 'senceCode', header: 'SENCE code' },
+    { accessorKey: 'senceCode', header: 'Código SENCE' },
     {
       accessorKey: 'taxCreditAmount',
-      header: 'Tax credit',
+      header: 'Crédito tributario',
       cell: ({ row }) => formatCurrency(row.original.taxCreditAmount ?? 0),
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
@@ -107,13 +107,13 @@ function SencePageContent() {
       cell: ({ row }) => (
         <div className="flex flex-wrap justify-end gap-2">
           <Button size="sm" variant="outline" onClick={() => void runSenceAction('validate', row.original.id)}>
-            Validate
+            Validar
           </Button>
           <Button size="sm" variant="outline" onClick={() => void runSenceAction('ready', row.original.id)}>
-            Ready
+            Lista
           </Button>
           <Button size="sm" variant="outline" onClick={() => void runSenceAction('submit', row.original.id)}>
-            Submit
+            Enviar
           </Button>
         </div>
       ),
@@ -124,30 +124,30 @@ function SencePageContent() {
     <div className="space-y-6">
         <PageHeader
           title="SENCE"
-          description="Prepare declaration evidence, tax credit signals and compliance readiness for SENCE workflows."
+          description="Prepara evidencia, crédito tributario y cumplimiento para flujos SENCE."
           action={
             <Button onClick={() => void createFromFirstSession()} disabled={createDeclaration.isPending || sessions.length === 0}>
-              {createDeclaration.isPending ? 'Creating...' : 'Create declaration'}
+              {createDeclaration.isPending ? 'Creando...' : 'Crear declaración'}
             </Button>
           }
           icon={FileCheck2}
         />
         <section className="grid gap-4 md:grid-cols-3">
-          <StatCard title="Ready declarations" value={String(ready)} change="Prepared for submission" tone="cyan" icon={ShieldCheck} />
-          <StatCard title="Projected credit" value={formatCurrency(projectedCredit)} change="Eligible declaration value" tone="emerald" icon={Landmark} />
-          <StatCard title="Needs evidence" value={String(missingEvidence)} change="Draft, observed or rejected" tone="rose" icon={TriangleAlert} />
+          <StatCard title="Declaraciones listas" value={String(ready)} change="Preparadas para envío" tone="cyan" icon={ShieldCheck} />
+          <StatCard title="Crédito proyectado" value={formatCurrency(projectedCredit)} change="Valor elegible declarado" tone="emerald" icon={Landmark} />
+          <StatCard title="Requieren evidencia" value={String(missingEvidence)} change="Borrador, observada o rechazada" tone="rose" icon={TriangleAlert} />
         </section>
         <FilterBar
           statusValue={filters.status}
           statusOptions={['DRAFT', 'READY', 'SUBMITTED', 'ACCEPTED', 'REJECTED', 'OBSERVED']}
           onStatusChange={(status) => setFilters({ status, page: 1 })}
         />
-        <SectionCard title="SENCE declaration wizard" description="Validate, prepare and submit declarations through backend workflow actions.">
+        <SectionCard title="Asistente de declaraciones SENCE" description="Valida, prepara y envía declaraciones mediante acciones del backend.">
           {declarationsQuery.isLoading ? <LoadingSkeleton /> : null}
           {declarationsQuery.isError ? <ErrorState onAction={() => void declarationsQuery.refetch()} /> : null}
           {!declarationsQuery.isLoading && !declarationsQuery.isError && declarations.length > 0 ? <DataTable columns={columns} data={declarations} /> : null}
           {!declarationsQuery.isLoading && !declarationsQuery.isError && declarations.length === 0 ? (
-            <EmptyState icon={FileCheck2} title="No SENCE declarations found" description="Create a declaration from a training session to build readiness checks and evidence." actionLabel="Create declaration" />
+            <EmptyState icon={FileCheck2} title="No se encontraron declaraciones SENCE" description="Crea una declaración desde una sesión para preparar validaciones y evidencia." actionLabel="Crear declaración" />
           ) : null}
         </SectionCard>
     </div>

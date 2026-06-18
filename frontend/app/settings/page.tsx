@@ -9,20 +9,20 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <ResourcePage
-        title="Settings"
-        description="Manage organization preferences, authentication policies and platform configuration."
-        actionLabel="Update settings"
+        title="Configuración"
+        description="Gestiona preferencias de la organización, autenticación y configuración de plataforma."
+        actionLabel="Actualizar configuración"
         icon={Settings}
         rows={[
-          { name: 'Organization profile', area: 'Workspace', metric: 'SkillFlow Demo', status: 'Active' },
-          { name: 'Authentication policy', area: 'Security', metric: 'JWT enabled', status: 'Active' },
-          { name: 'Compliance defaults', area: 'SENCE', metric: 'Demo mode', status: 'Ready' },
+          { name: 'Perfil de organización', area: 'Workspace', metric: 'Minera Andes Capacitación', status: 'ACTIVE' },
+          { name: 'Política de autenticación', area: 'Seguridad', metric: 'JWT habilitado', status: 'ACTIVE' },
+          { name: 'Configuración de cumplimiento', area: 'SENCE', metric: 'Modo demo', status: 'READY' },
         ]}
-        emptyDescription="Configure organization settings after connecting the production backend."
+        emptyDescription="Configura la organización después de conectar el backend productivo."
         stats={[
-          { title: 'Workspace', value: '1', change: 'SkillFlow Demo active', tone: 'indigo', icon: Building2 },
-          { title: 'RBAC policies', value: '42', change: 'Mapped permissions', tone: 'emerald', icon: ShieldCheck },
-          { title: 'Token flows', value: '2', change: 'Access and refresh', tone: 'cyan', icon: KeyRound },
+          { title: 'Workspace', value: '1', change: 'Demo activa', tone: 'indigo', icon: Building2 },
+          { title: 'Políticas RBAC', value: '42', change: 'Permisos mapeados', tone: 'emerald', icon: ShieldCheck },
+          { title: 'Flujos de token', value: '2', change: 'Acceso y refresh', tone: 'cyan', icon: KeyRound },
         ]}
       />
     </AppShell>

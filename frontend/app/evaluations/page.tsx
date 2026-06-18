@@ -69,31 +69,31 @@ function EvaluationsPageContent() {
         organizationId,
         trainingSessionId: sessions[0].id,
         type: 'KNOWLEDGE',
-        title: `${sessions[0].name} knowledge check`,
+        title: `${sessions[0].name} evaluación de conocimientos`,
         passingScore: 70,
       });
-      showToast({ title: 'Evaluation created', description: 'The evaluation is ready for participant submissions.', tone: 'success' });
+      showToast({ title: 'Evaluación creada', description: 'La evaluación está lista para respuestas de participantes.', tone: 'success' });
     } catch (error) {
-      showApiError(error, 'Unable to create evaluation');
+      showApiError(error, 'No se pudo crear la evaluación');
     }
   }
 
   const columns: Array<ColumnDef<Evaluation>> = [
-    { accessorKey: 'title', header: 'Evaluation' },
+    { accessorKey: 'title', header: 'Evaluación' },
     {
       accessorKey: 'trainingSessionId',
-      header: 'Session',
+      header: 'Sesión',
       cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? row.original.trainingSessionId,
     },
-    { accessorKey: 'type', header: 'Type' },
+    { accessorKey: 'type', header: 'Tipo' },
     {
       accessorKey: 'passingScore',
-      header: 'Passing score',
-      cell: ({ row }) => row.original.passingScore ?? 'N/A',
+      header: 'Puntaje aprobación',
+      cell: ({ row }) => row.original.passingScore ?? 'N/D',
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
   ];
@@ -101,31 +101,31 @@ function EvaluationsPageContent() {
   return (
     <div className="space-y-6">
         <PageHeader
-          title="Evaluations"
-          description="Track knowledge tests, satisfaction surveys and practical assessment outcomes."
+          title="Evaluaciones"
+          description="Monitorea pruebas de conocimiento, encuestas y resultados de evaluación práctica."
           action={
             <Button onClick={() => void createForFirstSession()} disabled={createEvaluation.isPending || sessions.length === 0}>
-              {createEvaluation.isPending ? 'Creating...' : 'Create evaluation'}
+              {createEvaluation.isPending ? 'Creando...' : 'Crear evaluación'}
             </Button>
           }
           icon={ClipboardCheck}
         />
         <section className="grid gap-4 md:grid-cols-3">
-          <StatCard title="Closed" value={String(closed)} change="Finished evaluations" tone="emerald" icon={Trophy} />
-          <StatCard title="Open" value={String(open)} change="Awaiting responses" tone="amber" icon={MessageSquareText} />
-          <StatCard title="Average passing score" value={averagePassingScore.toFixed(1)} change="Configured thresholds" tone="indigo" icon={Gauge} />
+          <StatCard title="Cerradas" value={String(closed)} change="Evaluaciones finalizadas" tone="emerald" icon={Trophy} />
+          <StatCard title="Abiertas" value={String(open)} change="Esperando respuestas" tone="amber" icon={MessageSquareText} />
+          <StatCard title="Puntaje promedio" value={averagePassingScore.toFixed(1)} change="Umbrales configurados" tone="indigo" icon={Gauge} />
         </section>
         <FilterBar
           statusValue={filters.status}
           statusOptions={['OPEN', 'CLOSED']}
           onStatusChange={(status) => setFilters({ status, page: 1 })}
         />
-        <SectionCard title="Evaluations overview" description="Live evaluation records from the backend.">
+        <SectionCard title="Vista de evaluaciones" description="Registros en vivo desde el backend.">
           {evaluationsQuery.isLoading ? <LoadingSkeleton /> : null}
           {evaluationsQuery.isError ? <ErrorState onAction={() => void evaluationsQuery.refetch()} /> : null}
           {!evaluationsQuery.isLoading && !evaluationsQuery.isError && evaluations.length > 0 ? <DataTable columns={columns} data={evaluations} /> : null}
           {!evaluationsQuery.isLoading && !evaluationsQuery.isError && evaluations.length === 0 ? (
-            <EmptyState icon={ClipboardCheck} title="No evaluations found" description="Create an evaluation for a training session to track score, percentage and pass signals." actionLabel="Create evaluation" />
+            <EmptyState icon={ClipboardCheck} title="No se encontraron evaluaciones" description="Crea una evaluación para una sesión y registra puntaje, porcentaje y aprobación." actionLabel="Crear evaluación" />
           ) : null}
         </SectionCard>
     </div>

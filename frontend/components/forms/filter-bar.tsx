@@ -29,7 +29,7 @@ export function FilterBar({
             onChange={(event) => onStatusChange?.(event.target.value)}
             aria-label="Filter by status"
           >
-            <option value="">All statuses</option>
+          <option value="">Todos los estados</option>
             {statusOptions.map((status) => (
               <option key={status} value={status}>
                 {status}
@@ -39,10 +39,10 @@ export function FilterBar({
         ) : null}
         <Button variant="outline" className="w-full sm:w-auto">
           <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
-          Filters
+          Filtros
         </Button>
         <Button variant="outline" className="w-full sm:w-auto">
-          Export
+          Exportar
         </Button>
       </div>
     </div>

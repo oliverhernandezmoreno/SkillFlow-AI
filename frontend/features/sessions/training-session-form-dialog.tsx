@@ -57,8 +57,8 @@ export function TrainingSessionFormDialog({ mode, courses, session, onSubmit }: 
     try {
       await onSubmit(values);
       showToast({
-        title: mode === 'create' ? 'Session scheduled' : 'Session updated',
-        description: 'Training session data is synced with the backend.',
+        title: mode === 'create' ? 'Sesión programada' : 'Sesión actualizada',
+        description: 'Los datos de la sesión quedaron sincronizados con el backend.',
         tone: 'success',
       });
       setOpen(false);
@@ -68,7 +68,7 @@ export function TrainingSessionFormDialog({ mode, courses, session, onSubmit }: 
     } catch (error) {
       const message = getErrorMessage(error);
       setSubmitError(message);
-      showToast({ title: 'Unable to save session', description: message, tone: 'error' });
+      showToast({ title: 'No se pudo guardar la sesión', description: message, tone: 'error' });
     }
   }
 
@@ -77,29 +77,29 @@ export function TrainingSessionFormDialog({ mode, courses, session, onSubmit }: 
       <DialogTrigger asChild>
         <Button variant={mode === 'create' ? 'default' : 'ghost'} size={mode === 'create' ? 'default' : 'icon'}>
           {mode === 'create' ? <CalendarPlus className="h-4 w-4" aria-hidden="true" /> : <Pencil className="h-4 w-4" aria-hidden="true" />}
-          {mode === 'create' ? 'Schedule session' : null}
+          {mode === 'create' ? 'Programar sesión' : null}
         </Button>
       </DialogTrigger>
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm" />
         <DialogContent className="fixed left-1/2 top-1/2 z-50 max-h-[92vh] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border bg-card p-6 shadow-soft">
           <DialogTitle className="text-lg font-semibold">
-            {mode === 'create' ? 'Schedule training session' : 'Edit training session'}
+            {mode === 'create' ? 'Programar sesión' : 'Editar sesión'}
           </DialogTitle>
           <DialogDescription className="mt-1 text-sm text-muted-foreground">
-            Configure the minimum required delivery data for enrollments and attendance.
+            Configura los datos mínimos para inscripciones y asistencia.
           </DialogDescription>
           <form
             className="mt-6 grid gap-4 sm:grid-cols-2"
             onSubmit={(event) =>
               void handleSubmit(submit, () =>
-                showToast({ title: 'Validation error', description: 'Review the highlighted session fields.', tone: 'warning' }),
+                showToast({ title: 'Error de validación', description: 'Revisa los campos destacados de la sesión.', tone: 'warning' }),
               )(event)
             }
           >
-            <FormField label="Course" htmlFor="courseId" error={errors.courseId?.message}>
+            <FormField label="Curso" htmlFor="courseId" error={errors.courseId?.message}>
               <select id="courseId" className="h-10 w-full rounded-md border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {...register('courseId')}>
-                <option value="">Select a course</option>
+                <option value="">Selecciona un curso</option>
                 {courses.map((course) => (
                   <option key={course.id} value={course.id}>
                     {course.name}
@@ -107,21 +107,21 @@ export function TrainingSessionFormDialog({ mode, courses, session, onSubmit }: 
                 ))}
               </select>
             </FormField>
-            <FormField label="Capacity" htmlFor="capacity" error={errors.capacity?.message}>
+            <FormField label="Capacidad" htmlFor="capacity" error={errors.capacity?.message}>
               <Input id="capacity" type="number" min="1" {...register('capacity')} />
             </FormField>
             <div className="sm:col-span-2">
-              <FormField label="Session name" htmlFor="name" error={errors.name?.message}>
+              <FormField label="Nombre de la sesión" htmlFor="name" error={errors.name?.message}>
                 <Input id="name" {...register('name')} />
               </FormField>
             </div>
-            <FormField label="Start" htmlFor="startDate" error={errors.startDate?.message}>
+            <FormField label="Inicio" htmlFor="startDate" error={errors.startDate?.message}>
               <Input id="startDate" type="datetime-local" {...register('startDate')} />
             </FormField>
-            <FormField label="End" htmlFor="endDate" error={errors.endDate?.message}>
+            <FormField label="Término" htmlFor="endDate" error={errors.endDate?.message}>
               <Input id="endDate" type="datetime-local" {...register('endDate')} />
             </FormField>
-            <FormField label="Location" htmlFor="location" error={errors.location?.message}>
+            <FormField label="Ubicación" htmlFor="location" error={errors.location?.message}>
               <Input id="location" {...register('location')} />
             </FormField>
             <FormField label="Meeting URL" htmlFor="meetingUrl" error={errors.meetingUrl?.message}>
@@ -131,10 +131,10 @@ export function TrainingSessionFormDialog({ mode, courses, session, onSubmit }: 
             <div className="flex justify-end gap-2 sm:col-span-2">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
-                  Cancel
+                  Cancelar
                 </Button>
               </DialogClose>
-              <Button disabled={isSubmitting || courses.length === 0}>{isSubmitting ? 'Saving...' : 'Save'}</Button>
+              <Button disabled={isSubmitting || courses.length === 0}>{isSubmitting ? 'Guardando...' : 'Guardar'}</Button>
             </div>
           </form>
         </DialogContent>

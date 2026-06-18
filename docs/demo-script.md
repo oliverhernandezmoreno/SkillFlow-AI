@@ -1,6 +1,8 @@
-# Commercial Demo Script
+# Guion Demo Comercial
 
-This script describes the commercial demo with the backend API and the v1.5 polished frontend. It intentionally avoids real SENCE integration and AI features.
+This script describes the commercial demo with the backend API and the v2.1 Spanish-first frontend. It intentionally avoids real SENCE integration and AI features.
+
+The demo is oriented to Chile/LatAm customers, OTEC, OTIC, HR teams, and investors.
 
 ## Setup
 
@@ -47,23 +49,42 @@ Use the seeded non-production demo account:
 ```text
 Email: admin@skillflow.demo
 Password: DemoPassword123
+Name: Demo Admin
+Visible role: Administrador RRHH
 ```
 
 The login screen includes a demo helper that fills these credentials.
 
+Seeded organization:
+
+```text
+Minera Andes Capacitación
+```
+
+Main seeded session:
+
+```text
+Seguridad Operacional - Junio 2026
+```
+
 ## Demo Flow
 
-1. Show the health endpoint at `GET /health`.
-2. Sign in to the frontend at `http://localhost:3001/login`.
-3. Open the dashboard and show KPIs derived from backend data, quick actions, loading/error states, and the demo checklist.
-4. Open Employees, search/filter the live list, and create or edit a participant profile.
-5. Open Courses, search/filter the catalog, and create or edit a course.
-6. Open Training Sessions, filter by status, schedule or edit a session, and publish a scheduled session.
-7. Open Enrollments, enroll an employee into a session, and cancel an enrollment when needed.
-8. Open Attendance and record bulk manual attendance for the first session with enrollments.
-9. Open Evaluations and create a knowledge check for an available session.
-10. Open Certificates and issue a certificate from an eligible enrollment.
-11. Open SENCE and create, validate, mark ready, and submit a declaration through the visual workflow.
+1. Mostrar el endpoint de salud en `GET /health`.
+2. Ingresar al frontend en `http://localhost:3001/login`.
+3. Abrir Panel de Control y mostrar KPIs derivados del backend, estados de carga/error y checklist demo.
+4. Abrir Colaboradores, buscar/filtrar la lista y crear o editar un perfil.
+5. Abrir Cursos, buscar/filtrar el catálogo y crear o editar un curso.
+6. Abrir Sesiones, filtrar por estado, programar o editar una sesión y publicar una sesión programada.
+7. Abrir Inscripciones, inscribir un colaborador en una sesión y cancelar una inscripción cuando corresponda.
+8. Abrir Asistencia y registrar asistencia manual masiva para la primera sesión con inscripciones.
+9. Abrir Evaluaciones y crear una evaluación de conocimientos para una sesión disponible.
+10. Abrir Certificados y emitir un certificado desde una inscripción elegible.
+11. Abrir SENCE y crear, validar, marcar lista y enviar una declaración mediante el flujo visual.
+
+Documented public demo URLs:
+
+- Frontend Vercel: `https://skillflow-ai.vercel.app` when configured in Vercel.
+- Backend Render: `https://tu-backend-render.onrender.com` placeholder in deployment docs; replace with the real service URL before presenting externally.
 
 ## Verification
 

@@ -36,12 +36,12 @@ interface ResourcePageProps {
 }
 
 const columns: Array<ColumnDef<ResourceRow>> = [
-  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'name', header: 'Nombre' },
   { accessorKey: 'area', header: 'Area' },
-  { accessorKey: 'metric', header: 'Signal' },
+  { accessorKey: 'metric', header: 'Señal' },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: 'Estado',
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
   },
   {
@@ -69,13 +69,13 @@ export function ResourcePage({
         ))}
       </section>
       <FilterBar />
-      <SectionCard title={`${title} overview`} description="Demo-ready operational view prepared for backend data.">
+      <SectionCard title={`Vista de ${title.toLowerCase()}`} description="Vista operativa preparada para datos del backend.">
         {rows.length > 0 ? (
           <DataTable columns={columns} data={rows} />
         ) : (
           <EmptyState
             icon={Icon}
-            title={`No ${title.toLowerCase()} found`}
+            title={`No hay registros de ${title.toLowerCase()}`}
             description={emptyDescription}
             actionLabel={actionLabel}
           />

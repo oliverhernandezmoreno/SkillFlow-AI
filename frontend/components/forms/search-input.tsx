@@ -7,7 +7,7 @@ interface SearchInputProps extends InputHTMLAttributes<HTMLInputElement> {
   placeholder?: string;
 }
 
-export function SearchInput({ placeholder = 'Search records...', ...props }: Readonly<SearchInputProps>) {
+export function SearchInput({ placeholder = 'Buscar colaboradores, cursos, certificados...', ...props }: Readonly<SearchInputProps>) {
   return (
     <label className="relative block min-w-0 flex-1">
       <span className="sr-only">{placeholder}</span>

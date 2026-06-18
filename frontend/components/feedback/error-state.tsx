@@ -11,9 +11,9 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({
-  title = 'Unable to load data',
-  description = 'The backend request failed. Try again or verify the API session.',
-  actionLabel = 'Retry',
+  title = 'No se pudieron cargar los datos',
+  description = 'La solicitud al backend falló. Intenta nuevamente o verifica la sesión.',
+  actionLabel = 'Reintentar',
   onAction,
 }: Readonly<ErrorStateProps>) {
   return (

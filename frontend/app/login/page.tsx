@@ -19,7 +19,7 @@ import { loginSchema, type LoginFormValues } from '@/lib/validations/auth';
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="grid min-h-screen place-items-center">Loading...</main>}>
+    <Suspense fallback={<main className="grid min-h-screen place-items-center">Cargando...</main>}>
       <LoginContent />
     </Suspense>
   );
@@ -53,15 +53,15 @@ function LoginContent() {
     try {
       await login(values);
       showToast({
-        title: 'Signed in',
-        description: 'Demo workspace connected successfully.',
+        title: 'Sesión iniciada',
+        description: 'Demo conectada correctamente.',
         tone: 'success',
       });
       router.replace(searchParams.get('next') ?? '/dashboard');
     } catch (error) {
       const message = getErrorMessage(error);
       setErrorMessage(message);
-      showToast({ title: 'Login failed', description: message, tone: 'error' });
+      showToast({ title: 'No se pudo ingresar', description: message, tone: 'error' });
     }
   }
 
@@ -72,18 +72,18 @@ function LoginContent() {
         <section className="hidden lg:block">
           <div className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-sm text-muted-foreground shadow-sm">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-            Premium HRTech command center
+            Plataforma SaaS HRTech premium
           </div>
           <h1 className="mt-6 max-w-3xl text-5xl font-semibold tracking-normal text-foreground">
             SkillFlow AI
           </h1>
           <p className="mt-4 max-w-xl text-lg text-muted-foreground">
-            Learning, Compliance & Workforce Intelligence
+            La plataforma inteligente para gestionar capacitación, cumplimiento y talento.
           </p>
           <div className="mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
             {[
-              { icon: ShieldCheck, title: 'Compliance-ready', text: 'PAC, SENCE, certificates and audit trails.' },
-              { icon: BarChart3, title: 'Executive clarity', text: 'Live training KPIs and workforce signals.' },
+              { icon: ShieldCheck, title: 'Cumplimiento listo', text: 'PAC, SENCE, certificados y trazabilidad para auditorías.' },
+              { icon: BarChart3, title: 'Claridad ejecutiva', text: 'KPIs de capacitación y señales del talento en tiempo real.' },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -102,9 +102,9 @@ function LoginContent() {
             <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               SF
             </div>
-            <h2 className="text-2xl font-semibold tracking-normal">Welcome back</h2>
+            <h2 className="text-2xl font-semibold tracking-normal">Bienvenido nuevamente</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Sign in to manage training, compliance and workforce readiness.
+              Ingresa para gestionar capacitación, cumplimiento y desarrollo del talento.
             </p>
           </div>
           <div className="mb-5 rounded-lg border bg-muted/45 p-3">
@@ -113,29 +113,29 @@ function LoginContent() {
                 <KeyRound className="h-4 w-4" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">Demo access</p>
+                <p className="text-sm font-medium">Acceso demo</p>
                 <p className="mt-1 truncate text-sm text-muted-foreground">{demoAccount.email}</p>
               </div>
               <Button type="button" variant="outline" size="sm" onClick={fillDemoAccount}>
-                Use demo
+                Usar demo
               </Button>
             </div>
           </div>
           <form className="space-y-4" onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
-            <FormField label="Email" htmlFor="email" error={errors.email?.message}>
+            <FormField label="Correo electrónico" htmlFor="email" error={errors.email?.message}>
               <Input id="email" autoComplete="email" {...register('email')} />
             </FormField>
-            <FormField label="Password" htmlFor="password" error={errors.password?.message}>
+            <FormField label="Contraseña" htmlFor="password" error={errors.password?.message}>
               <Input id="password" type="password" autoComplete="current-password" {...register('password')} />
             </FormField>
             <div className="flex justify-end">
               <Link className="text-sm font-medium text-primary hover:underline" href="/forgot-password">
-                Forgot your password?
+                ¿Olvidaste tu contraseña?
               </Link>
             </div>
             {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
             <Button className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? 'Ingresando...' : 'Ingresar'}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </form>

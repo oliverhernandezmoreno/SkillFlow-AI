@@ -22,13 +22,13 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
           <div className="fixed inset-0 z-50 lg:hidden">
             <button
               className="absolute inset-0 bg-slate-950/40"
-              aria-label="Close navigation"
+              aria-label="Cerrar navegación"
               onClick={() => setIsMobileOpen(false)}
             />
             <div className="relative h-full w-[min(20rem,86vw)] border-r bg-background shadow-soft">
               <div className="absolute right-3 top-3">
                 <Button variant="ghost" size="sm" onClick={() => setIsMobileOpen(false)}>
-                  Close
+                  Cerrar
                 </Button>
               </div>
               <Sidebar onNavigate={() => setIsMobileOpen(false)} />

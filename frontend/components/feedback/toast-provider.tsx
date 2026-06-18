@@ -82,7 +82,7 @@ export function ToastProvider({ children }: Readonly<{ children: ReactNode }>) {
                   <p className="text-sm font-semibold">{message.title}</p>
                   {message.description ? <p className="mt-1 text-sm opacity-80">{message.description}</p> : null}
                 </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => dismiss(message.id)} aria-label="Dismiss notification">
+                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => dismiss(message.id)} aria-label="Cerrar notificación">
                   <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>

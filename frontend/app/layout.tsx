@@ -7,12 +7,12 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'SkillFlow AI',
-  description: 'Learning, Compliance & Workforce Intelligence',
+  description: 'La plataforma inteligente para gestionar capacitación, cumplimiento y talento.',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="es-CL" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>
         <ThemeProvider>
           <ToastProvider>

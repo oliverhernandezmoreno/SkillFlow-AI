@@ -28,13 +28,13 @@ interface UpcomingSession {
 }
 
 const columns: Array<ColumnDef<UpcomingSession>> = [
-  { accessorKey: 'name', header: 'Session' },
-  { accessorKey: 'owner', header: 'Owner' },
-  { accessorKey: 'date', header: 'Date' },
-  { accessorKey: 'seats', header: 'Seats' },
+  { accessorKey: 'name', header: 'Sesión' },
+  { accessorKey: 'owner', header: 'Curso' },
+  { accessorKey: 'date', header: 'Fecha' },
+  { accessorKey: 'seats', header: 'Cupos' },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: 'Estado',
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
   },
   {
@@ -76,7 +76,7 @@ export function DashboardView() {
       const sessionEnrollments = enrollments.filter((enrollment) => enrollment.trainingSessionId === session.id);
       return {
         name: session.name,
-        owner: courses.find((course) => course.id === session.courseId)?.name ?? 'Course pending',
+        owner: courses.find((course) => course.id === session.courseId)?.name ?? 'Curso pendiente',
         date: formatDate(session.startDate),
         seats: `${sessionEnrollments.length}/${session.capacity}`,
         status: session.status,
@@ -93,8 +93,8 @@ export function DashboardView() {
   });
   const complianceTrend = [
     { name: 'PAC', compliance: Math.round(pacCompliance) },
-    { name: 'Attendance', compliance: Math.round(averageAttendance) },
-    { name: 'Certificates', compliance: certificates.length },
+    { name: 'Asistencia', compliance: Math.round(averageAttendance) },
+    { name: 'Certificados', compliance: certificates.length },
     { name: 'SENCE', compliance: readySence },
   ];
   const timelineItems = sessions.slice(0, 4).map((session) => ({
@@ -103,15 +103,15 @@ export function DashboardView() {
     status: session.status,
   }));
   const executiveStats = [
-    { title: 'Employees count', value: String(dashboard.employees.data?.meta.total ?? employees.length), change: 'Loaded from employees API', tone: 'indigo' as const, icon: Users },
-    { title: 'Active courses', value: String(activeCourses), change: 'Catalog entries available for planning', tone: 'cyan' as const, icon: BookOpen },
-    { title: 'Active sessions', value: String(activeSessions.length), change: 'Scheduled, published or in progress', tone: 'indigo' as const, icon: CalendarDays },
-    { title: 'Total enrollments', value: String(dashboard.enrollments.data?.meta.total ?? enrollments.length), change: `${employees.length} employees loaded`, tone: 'cyan' as const, icon: Users },
-    { title: 'Average attendance', value: formatPercent(averageAttendance), change: 'Derived from attendance records', tone: 'emerald' as const, icon: TrendingUp },
-    { title: 'Evaluations passed', value: String(evaluationsPassed), change: `${evaluations.length} evaluations loaded`, tone: 'emerald' as const, icon: ClipboardCheck },
-    { title: 'Certificates issued', value: String(certificates.length), change: 'Certificate records', tone: 'indigo' as const, icon: Award },
-    { title: 'SENCE declarations', value: String(senceDeclarations.length), change: `${readySence} ready, submitted or accepted`, tone: 'amber' as const, icon: FileCheck2 },
-    { title: 'Critical alerts', value: String(criticalAlerts), change: 'Pending, waitlisted or observed items', tone: 'rose' as const, icon: AlertTriangle },
+    { title: 'Colaboradores', value: String(dashboard.employees.data?.meta.total ?? employees.length), change: 'Cargados desde la API', tone: 'indigo' as const, icon: Users },
+    { title: 'Cursos activos', value: String(activeCourses), change: 'Catálogo disponible para planificación', tone: 'cyan' as const, icon: BookOpen },
+    { title: 'Sesiones activas', value: String(activeSessions.length), change: 'Programadas, publicadas o en curso', tone: 'indigo' as const, icon: CalendarDays },
+    { title: 'Inscripciones', value: String(dashboard.enrollments.data?.meta.total ?? enrollments.length), change: `${employees.length} colaboradores cargados`, tone: 'cyan' as const, icon: Users },
+    { title: 'Asistencia promedio', value: formatPercent(averageAttendance), change: 'Calculada desde registros de asistencia', tone: 'emerald' as const, icon: TrendingUp },
+    { title: 'Evaluaciones aprobadas', value: String(evaluationsPassed), change: `${evaluations.length} evaluaciones cargadas`, tone: 'emerald' as const, icon: ClipboardCheck },
+    { title: 'Certificados emitidos', value: String(certificates.length), change: 'Registros de certificados', tone: 'indigo' as const, icon: Award },
+    { title: 'Declaraciones SENCE', value: String(senceDeclarations.length), change: `${readySence} listas, enviadas o aceptadas`, tone: 'amber' as const, icon: FileCheck2 },
+    { title: 'Alertas críticas', value: String(criticalAlerts), change: 'Pendientes, lista de espera u observadas', tone: 'rose' as const, icon: AlertTriangle },
   ];
   const hasAnyData =
     employees.length +
@@ -127,19 +127,19 @@ export function DashboardView() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Executive Dashboard"
-        description="A real-time command center for training operations, compliance progress and workforce readiness."
-        actionLabel="Create training"
+        title="Panel Ejecutivo"
+        description="Centro de control en tiempo real para capacitación, cumplimiento y desarrollo organizacional."
+        actionLabel="Crear capacitación"
       />
 
       {dashboard.isLoading ? <LoadingSkeleton /> : null}
-      {dashboard.isError ? <ErrorState description="One or more dashboard sources could not be loaded." /> : null}
+      {dashboard.isError ? <ErrorState description="Una o más fuentes del panel no se pudieron cargar." /> : null}
       {!dashboard.isLoading && !dashboard.isError && !hasAnyData ? (
         <EmptyState
           icon={LayoutDashboard}
-          title="No operational data yet"
-          description="Create employees, courses and sessions to populate the executive dashboard."
-          actionLabel="Start setup"
+          title="Sin datos operativos todavía"
+          description="Crea colaboradores, cursos y sesiones para poblar el panel ejecutivo."
+          actionLabel="Iniciar configuración"
         />
       ) : null}
 
@@ -151,10 +151,10 @@ export function DashboardView() {
 
       {hasAnyData ? (
         <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-          <SectionCard title="Attendance trend" description="Average participant presence across active programs.">
+          <SectionCard title="Tendencia de asistencia" description="Presencia promedio de participantes en programas activos.">
             <MetricChart data={attendanceTrend} dataKey="attendance" />
           </SectionCard>
-          <SectionCard title="PAC compliance" description="Completion by workforce area.">
+          <SectionCard title="Cumplimiento PAC" description="Avance de cumplimiento por línea de trabajo.">
             <MetricChart data={complianceTrend} dataKey="compliance" type="bar" />
           </SectionCard>
         </section>
@@ -162,20 +162,20 @@ export function DashboardView() {
 
       <section className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
         <SectionCard
-          title="Upcoming sessions"
-          description="Commercial demo schedule with capacity and readiness status."
+          title="Próximas sesiones"
+          description="Agenda demo con capacidad y estado de preparación."
           action={
             <Button variant="outline" size="sm" asChild>
               <Link href="/training-sessions">
                 <Plus className="h-4 w-4" aria-hidden="true" />
-                New
+                Nueva
               </Link>
             </Button>
           }
         >
           <DataTable columns={columns} data={upcomingSessions} />
         </SectionCard>
-        <SectionCard title="Training timeline" description="Important milestones and compliance checkpoints.">
+        <SectionCard title="Línea de tiempo" description="Hitos relevantes y puntos de control de cumplimiento.">
           <Timeline items={timelineItems} />
         </SectionCard>
       </section>

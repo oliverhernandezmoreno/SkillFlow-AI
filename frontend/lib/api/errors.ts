@@ -13,25 +13,25 @@ export function getErrorMessage(error: unknown) {
     }
 
     if (error.status === 401) {
-      return 'Your session expired. Please sign in again.';
+      return 'Tu sesión expiró. Vuelve a ingresar.';
     }
     if (error.status === 403) {
-      return 'You do not have permission to perform this action.';
+      return 'No tienes permisos para realizar esta acción.';
     }
     if (error.status >= 500) {
-      return 'The backend could not complete the request. Please try again.';
+      return 'El backend no pudo completar la solicitud. Intenta nuevamente.';
     }
 
     return error.message;
   }
 
   if (error instanceof TypeError) {
-    return 'Backend is not available. Check that the API is running.';
+    return 'El backend no está disponible. Verifica que la API esté funcionando.';
   }
 
   if (error instanceof Error) {
     return error.message;
   }
 
-  return 'Unexpected error. Please try again.';
+  return 'Error inesperado. Intenta nuevamente.';
 }

@@ -25,7 +25,7 @@ describe('Dashboard', () => {
   it('renders an empty state when backend data is empty', () => {
     render(<DashboardView />);
 
-    expect(screen.getByRole('heading', { name: /executive dashboard/i })).toBeInTheDocument();
-    expect(screen.getByText(/no operational data yet/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /panel ejecutivo/i })).toBeInTheDocument();
+    expect(screen.getByText(/sin datos operativos todavía/i)).toBeInTheDocument();
   });
 });

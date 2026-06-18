@@ -27,15 +27,15 @@ export default function TrainingPlansPage() {
 
   const columns: Array<ColumnDef<TrainingPlan>> = [
     { accessorKey: 'name', header: 'Plan' },
-    { accessorKey: 'year', header: 'Year' },
+    { accessorKey: 'year', header: 'Año' },
     {
       accessorKey: 'budgetAmount',
-      header: 'Budget',
+      header: 'Presupuesto',
       cell: ({ row }) => formatCurrency(row.original.budgetAmount ?? 0),
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
   ];
@@ -44,22 +44,22 @@ export default function TrainingPlansPage() {
     <AppShell>
       <div className="space-y-6">
         <PageHeader
-          title="Training Plans"
-          description="Track PAC budgets, priorities and training coverage across the organization."
-          actionLabel="Create plan"
+          title="Planes de Capacitación"
+          description="Monitorea presupuestos PAC, prioridades y cobertura de capacitación."
+          actionLabel="Crear plan"
           icon={BarChart3}
         />
         <section className="grid gap-4 md:grid-cols-3">
-          <StatCard title="PAC compliance" value={`${compliance.toFixed(0)}%`} change="Approved or closed plans" tone="emerald" icon={Target} />
-          <StatCard title="Approved budget" value={formatCurrency(budget)} change="Planned investment" tone="indigo" icon={CircleDollarSign} />
-          <StatCard title="Approved plans" value={String(approved)} change={`${plans.length} plans loaded`} tone="cyan" icon={FileCheck2} />
+          <StatCard title="Cumplimiento PAC" value={`${compliance.toFixed(0)}%`} change="Planes aprobados o cerrados" tone="emerald" icon={Target} />
+          <StatCard title="Presupuesto aprobado" value={formatCurrency(budget)} change="Inversión planificada" tone="indigo" icon={CircleDollarSign} />
+          <StatCard title="Planes aprobados" value={String(approved)} change={`${plans.length} planes cargados`} tone="cyan" icon={FileCheck2} />
         </section>
-        <SectionCard title="Training Plans overview" description="Live annual planning records from the backend.">
+        <SectionCard title="Vista de planes" description="Registros anuales en vivo desde el backend.">
           {plansQuery.isLoading ? <LoadingSkeleton /> : null}
           {plansQuery.isError ? <ErrorState onAction={() => void plansQuery.refetch()} /> : null}
           {!plansQuery.isLoading && !plansQuery.isError && plans.length > 0 ? <DataTable columns={columns} data={plans} /> : null}
           {!plansQuery.isLoading && !plansQuery.isError && plans.length === 0 ? (
-            <EmptyState icon={BarChart3} title="No training plans found" description="Create annual training plans to coordinate budget, priorities and course demand." actionLabel="Create plan" />
+            <EmptyState icon={BarChart3} title="No se encontraron planes de capacitación" description="Crea planes anuales para coordinar presupuesto, prioridades y demanda de cursos." actionLabel="Crear plan" />
           ) : null}
         </SectionCard>
       </div>

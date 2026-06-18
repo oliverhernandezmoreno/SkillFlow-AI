@@ -7,10 +7,84 @@ import { PrismaAuditLogger } from '../../../shared/infrastructure/prisma/prisma-
 
 const demoOrganization = {
   taxId: '76.555.444-0',
-  legalName: 'SkillFlow Demo Mining SpA',
-  tradeName: 'SkillFlow Demo',
+  legalName: 'Minera Andes Capacitación SpA',
+  tradeName: 'Minera Andes Capacitación',
   email: 'admin@skillflow.demo',
 };
+
+const demoEmployees = [
+  {
+    rut: '18.222.333-4',
+    employeeCode: 'EMP-DEMO-001',
+    firstName: 'María',
+    lastName: 'González',
+    email: 'maria.gonzalez@mineraandes.demo',
+    areaName: 'Operaciones Mina',
+    positionName: 'Supervisora de Turno',
+  },
+  {
+    rut: '16.444.555-6',
+    employeeCode: 'EMP-DEMO-002',
+    firstName: 'Carlos',
+    lastName: 'Rojas',
+    email: 'carlos.rojas@mineraandes.demo',
+    areaName: 'Mantención',
+    positionName: 'Técnico Mecánico',
+  },
+  {
+    rut: '19.777.888-9',
+    employeeCode: 'EMP-DEMO-003',
+    firstName: 'Fernanda',
+    lastName: 'Muñoz',
+    email: 'fernanda.munoz@mineraandes.demo',
+    areaName: 'Recursos Humanos',
+    positionName: 'Analista de Capacitación',
+  },
+  {
+    rut: '15.111.222-3',
+    employeeCode: 'EMP-DEMO-004',
+    firstName: 'Rodrigo',
+    lastName: 'Pérez',
+    email: 'rodrigo.perez@mineraandes.demo',
+    areaName: 'Seguridad y Salud Ocupacional',
+    positionName: 'Prevencionista de Riesgos',
+  },
+] as const;
+
+const demoCourses = [
+  {
+    code: 'SFC-DEMO-001',
+    name: 'Seguridad Operacional',
+    description: 'Curso demo para gestión de seguridad operacional y cumplimiento interno.',
+    modality: 'PRESENTIAL' as const,
+    durationHours: 8,
+    senceCode: 'SENCE-DEMO-001',
+  },
+  {
+    code: 'SFC-DEMO-002',
+    name: 'Trabajo en Altura',
+    description: 'Capacitación práctica para trabajos críticos y control de riesgos.',
+    modality: 'PRESENTIAL' as const,
+    durationHours: 6,
+    senceCode: 'SENCE-DEMO-002',
+  },
+  {
+    code: 'SFC-DEMO-003',
+    name: 'Inducción Corporativa',
+    description: 'Inducción para nuevos colaboradores y estándares corporativos.',
+    modality: 'HYBRID' as const,
+    durationHours: 4,
+    senceCode: 'SENCE-DEMO-003',
+  },
+  {
+    code: 'SFC-DEMO-004',
+    name: 'Ciberseguridad para Colaboradores',
+    description: 'Buenas prácticas digitales para proteger información corporativa.',
+    modality: 'ONLINE' as const,
+    durationHours: 3,
+    senceCode: 'SENCE-DEMO-004',
+  },
+] as const;
 
 const demoPermissionCodes = [
   'organizations.read',
@@ -112,7 +186,7 @@ export async function bootstrapDemoData(
       email: demoOrganization.email,
       type: 'CLIENT_COMPANY',
       status: 'ACTIVE',
-      industry: 'Mining',
+      industry: 'Minería',
       country: 'CL',
     },
     create: {
@@ -122,7 +196,7 @@ export async function bootstrapDemoData(
       email: demoOrganization.email,
       type: 'CLIENT_COMPANY',
       status: 'ACTIVE',
-      industry: 'Mining',
+      industry: 'Minería',
       country: 'CL',
     },
   });
@@ -160,15 +234,15 @@ export async function bootstrapDemoData(
       },
     },
     update: {
-      name: 'Demo Administrator',
-      description: 'Administrative demo role for the public SkillFlow walkthrough.',
+      name: 'Administrador RRHH',
+      description: 'Rol administrativo demo para presentar SkillFlow AI.',
       isSystem: true,
     },
     create: {
       organizationId: organization.id,
       code: 'demo-admin',
-      name: 'Demo Administrator',
-      description: 'Administrative demo role for the public SkillFlow walkthrough.',
+      name: 'Administrador RRHH',
+      description: 'Rol administrativo demo para presentar SkillFlow AI.',
       isSystem: true,
     },
   });
@@ -224,62 +298,78 @@ export async function bootstrapDemoData(
     ),
   );
 
-  const employee = await prisma.employee.upsert({
-    where: {
-      organizationId_rut: {
-        organizationId: organization.id,
-        rut: '18.222.333-4',
-      },
-    },
-    update: {
-      firstName: 'Camila',
-      lastName: 'Torres',
-      email: 'camila.torres@skillflow-demo.example',
-      normalizedEmail: 'camila.torres@skillflow-demo.example',
-      areaName: 'Operations',
-      positionName: 'Shift Supervisor',
-      status: 'ACTIVE',
-    },
-    create: {
-      organizationId: organization.id,
-      rut: '18.222.333-4',
-      employeeCode: 'EMP-DEMO-001',
-      firstName: 'Camila',
-      lastName: 'Torres',
-      email: 'camila.torres@skillflow-demo.example',
-      normalizedEmail: 'camila.torres@skillflow-demo.example',
-      areaName: 'Operations',
-      positionName: 'Shift Supervisor',
-      status: 'ACTIVE',
-    },
-  });
+  const employees = await Promise.all(
+    demoEmployees.map((demoEmployee) =>
+      prisma.employee.upsert({
+        where: {
+          organizationId_rut: {
+            organizationId: organization.id,
+            rut: demoEmployee.rut,
+          },
+        },
+        update: {
+          firstName: demoEmployee.firstName,
+          lastName: demoEmployee.lastName,
+          email: demoEmployee.email,
+          normalizedEmail: demoEmployee.email,
+          areaName: demoEmployee.areaName,
+          positionName: demoEmployee.positionName,
+          status: 'ACTIVE',
+        },
+        create: {
+          organizationId: organization.id,
+          rut: demoEmployee.rut,
+          employeeCode: demoEmployee.employeeCode,
+          firstName: demoEmployee.firstName,
+          lastName: demoEmployee.lastName,
+          email: demoEmployee.email,
+          normalizedEmail: demoEmployee.email,
+          areaName: demoEmployee.areaName,
+          positionName: demoEmployee.positionName,
+          status: 'ACTIVE',
+        },
+      }),
+    ),
+  );
+  const [employee] = employees;
+  if (!employee) {
+    throw new Error('Demo employee seed is empty.');
+  }
 
-  const course = await prisma.course.upsert({
-    where: {
-      organizationId_code: {
-        organizationId: organization.id,
-        code: 'SFC-DEMO-001',
-      },
-    },
-    update: {
-      name: 'Operational Safety Essentials',
-      description: 'Demo course for commercial training and compliance walkthroughs.',
-      modality: 'PRESENTIAL',
-      durationHours: 8,
-      senceCode: 'SENCE-DEMO-001',
-      status: 'ACTIVE',
-    },
-    create: {
-      organizationId: organization.id,
-      code: 'SFC-DEMO-001',
-      name: 'Operational Safety Essentials',
-      description: 'Demo course for commercial training and compliance walkthroughs.',
-      modality: 'PRESENTIAL',
-      durationHours: 8,
-      senceCode: 'SENCE-DEMO-001',
-      status: 'ACTIVE',
-    },
-  });
+  const courses = await Promise.all(
+    demoCourses.map((demoCourse) =>
+      prisma.course.upsert({
+        where: {
+          organizationId_code: {
+            organizationId: organization.id,
+            code: demoCourse.code,
+          },
+        },
+        update: {
+          name: demoCourse.name,
+          description: demoCourse.description,
+          modality: demoCourse.modality,
+          durationHours: demoCourse.durationHours,
+          senceCode: demoCourse.senceCode,
+          status: 'ACTIVE',
+        },
+        create: {
+          organizationId: organization.id,
+          code: demoCourse.code,
+          name: demoCourse.name,
+          description: demoCourse.description,
+          modality: demoCourse.modality,
+          durationHours: demoCourse.durationHours,
+          senceCode: demoCourse.senceCode,
+          status: 'ACTIVE',
+        },
+      }),
+    ),
+  );
+  const [course] = courses;
+  if (!course) {
+    throw new Error('Demo course seed is empty.');
+  }
 
   const trainingPlan = await prisma.trainingPlan.upsert({
     where: {
@@ -289,7 +379,7 @@ export async function bootstrapDemoData(
       },
     },
     update: {
-      name: 'Demo Annual Training Plan 2026',
+      name: 'Plan Anual de Capacitación 2026',
       budgetAmount: 2500000,
       currency: 'CLP',
       status: 'APPROVED',
@@ -297,7 +387,7 @@ export async function bootstrapDemoData(
     },
     create: {
       organizationId: organization.id,
-      name: 'Demo Annual Training Plan 2026',
+      name: 'Plan Anual de Capacitación 2026',
       year: 2026,
       budgetAmount: 2500000,
       currency: 'CLP',
@@ -319,7 +409,7 @@ export async function bootstrapDemoData(
       estimatedParticipants: 24,
       estimatedCost: 1200000,
       priority: 'HIGH',
-      businessJustification: 'Commercial demo compliance training path.',
+      businessJustification: 'Ruta demo de cumplimiento y seguridad operacional.',
     },
     create: {
       organizationId: organization.id,
@@ -330,7 +420,7 @@ export async function bootstrapDemoData(
       estimatedParticipants: 24,
       estimatedCost: 1200000,
       priority: 'HIGH',
-      businessJustification: 'Commercial demo compliance training path.',
+      businessJustification: 'Ruta demo de cumplimiento y seguridad operacional.',
     },
   });
 
@@ -381,9 +471,9 @@ export async function bootstrapDemoData(
     update: {
       organizationId: organization.id,
       type: 'SINGLE_CHOICE',
-      questionText: 'What is the safest default action before operating equipment?',
-      options: ['Start immediately', 'Verify controls', 'Skip inspection'],
-      correctAnswer: 'Verify controls',
+      questionText: '¿Cuál es la acción segura antes de operar un equipo?',
+      options: ['Iniciar inmediatamente', 'Verificar controles', 'Omitir inspección'],
+      correctAnswer: 'Verificar controles',
       points: 100,
       required: true,
     },
@@ -391,9 +481,9 @@ export async function bootstrapDemoData(
       organizationId: organization.id,
       evaluationId: evaluation.id,
       type: 'SINGLE_CHOICE',
-      questionText: 'What is the safest default action before operating equipment?',
-      options: ['Start immediately', 'Verify controls', 'Skip inspection'],
-      correctAnswer: 'Verify controls',
+      questionText: '¿Cuál es la acción segura antes de operar un equipo?',
+      options: ['Iniciar inmediatamente', 'Verificar controles', 'Omitir inspección'],
+      correctAnswer: 'Verificar controles',
       points: 100,
       orderIndex: 0,
       required: true,
@@ -411,7 +501,7 @@ export async function bootstrapDemoData(
       enrollmentId: enrollment.id,
       score: 100,
       passed: true,
-      answersPayload: [{ evaluationQuestionId: evaluationQuestion.id, answer: 'Verify controls' }],
+      answersPayload: [{ evaluationQuestionId: evaluationQuestion.id, answer: 'Verificar controles' }],
     },
     create: {
       organizationId: organization.id,
@@ -420,7 +510,7 @@ export async function bootstrapDemoData(
       employeeId: employee.id,
       score: 100,
       passed: true,
-      answersPayload: [{ evaluationQuestionId: evaluationQuestion.id, answer: 'Verify controls' }],
+      answersPayload: [{ evaluationQuestionId: evaluationQuestion.id, answer: 'Verificar controles' }],
     },
   });
   const evaluationAnswer = await prisma.evaluationAnswer.upsert({
@@ -433,7 +523,7 @@ export async function bootstrapDemoData(
     update: {
       organizationId: organization.id,
       employeeId: employee.id,
-      answer: 'Verify controls',
+      answer: 'Verificar controles',
       score: 100,
     },
     create: {
@@ -441,7 +531,7 @@ export async function bootstrapDemoData(
       evaluationResponseId: evaluationResponse.id,
       evaluationQuestionId: evaluationQuestion.id,
       employeeId: employee.id,
-      answer: 'Verify controls',
+      answer: 'Verificar controles',
       score: 100,
     },
   });
@@ -532,17 +622,17 @@ async function upsertDemoTrainingSession(
   const existing = await prisma.trainingSession.findFirst({
     where: {
       organizationId: input.organizationId,
-      name: 'Demo Safety Session',
+      name: 'Seguridad Operacional - Junio 2026',
     },
   });
   const data = {
     organizationId: input.organizationId,
     courseId: input.courseId,
     trainingPlanItemId: input.trainingPlanItemId,
-    name: 'Demo Safety Session',
-    startDate: new Date('2026-07-15T13:00:00.000Z'),
-    endDate: new Date('2026-07-15T21:00:00.000Z'),
-    location: 'Santiago Training Room A',
+    name: 'Seguridad Operacional - Junio 2026',
+    startDate: new Date('2026-06-24T13:00:00.000Z'),
+    endDate: new Date('2026-06-24T21:00:00.000Z'),
+    location: 'Sala de Capacitación Santiago',
     capacity: 24,
     costAmount: 1200000,
     status: 'PUBLISHED' as const,
@@ -566,8 +656,8 @@ async function upsertDemoAttendance(
     employeeId: input.employeeId,
     method: 'MANUAL' as const,
     status: 'PRESENT' as const,
-    checkInAt: new Date('2026-07-15T13:00:00.000Z'),
-    checkOutAt: new Date('2026-07-15T21:00:00.000Z'),
+    checkInAt: new Date('2026-06-24T13:00:00.000Z'),
+    checkOutAt: new Date('2026-06-24T21:00:00.000Z'),
   };
   const existing = await prisma.attendanceRecord.findFirst({
     where: {
@@ -593,9 +683,9 @@ async function upsertDemoEvaluation(
     organizationId,
     trainingSessionId,
     type: 'KNOWLEDGE_TEST' as const,
-    title: 'Operational Safety Final Test',
+    title: 'Evaluación Final Seguridad Operacional',
     passingScore: 70,
-    closedAt: new Date('2026-07-15T22:00:00.000Z'),
+    closedAt: new Date('2026-06-24T22:00:00.000Z'),
   };
   const existing = await prisma.evaluation.findFirst({
     where: {

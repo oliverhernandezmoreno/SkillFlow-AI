@@ -54,8 +54,8 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
     try {
       await onSubmit(values);
       showToast({
-        title: mode === 'create' ? 'Course created' : 'Course updated',
-        description: 'Catalog data is synced with the backend.',
+        title: mode === 'create' ? 'Curso creado' : 'Curso actualizado',
+        description: 'Los datos del catálogo quedaron sincronizados con el backend.',
         tone: 'success',
       });
       setOpen(false);
@@ -65,7 +65,7 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
     } catch (error) {
       const message = getErrorMessage(error);
       setSubmitError(message);
-      showToast({ title: 'Unable to save course', description: message, tone: 'error' });
+      showToast({ title: 'No se pudo guardar el curso', description: message, tone: 'error' });
     }
   }
 
@@ -74,36 +74,36 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
       <DialogTrigger asChild>
         <Button variant={mode === 'create' ? 'default' : 'ghost'} size={mode === 'create' ? 'default' : 'icon'}>
           {mode === 'create' ? <Plus className="h-4 w-4" aria-hidden="true" /> : <Pencil className="h-4 w-4" aria-hidden="true" />}
-          {mode === 'create' ? 'Create course' : null}
+          {mode === 'create' ? 'Crear curso' : null}
         </Button>
       </DialogTrigger>
       <DialogPortal>
         <DialogOverlay className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-sm" />
         <DialogContent className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-card p-6 shadow-soft">
           <DialogTitle className="text-lg font-semibold">
-            {mode === 'create' ? 'Create course' : 'Edit course'}
+            {mode === 'create' ? 'Crear curso' : 'Editar curso'}
           </DialogTitle>
           <DialogDescription className="mt-1 text-sm text-muted-foreground">
-            Maintain catalog data used by sessions, enrollments and certificates.
+            Mantén el catálogo que alimenta sesiones, inscripciones y certificados.
           </DialogDescription>
           <form
             className="mt-6 grid gap-4 sm:grid-cols-2"
             onSubmit={(event) =>
               void handleSubmit(submit, () =>
-                showToast({ title: 'Validation error', description: 'Review the highlighted course fields.', tone: 'warning' }),
+                showToast({ title: 'Error de validación', description: 'Revisa los campos destacados del curso.', tone: 'warning' }),
               )(event)
             }
           >
-            <FormField label="Code" htmlFor="code" error={errors.code?.message}>
+            <FormField label="Código" htmlFor="code" error={errors.code?.message}>
               <Input id="code" {...register('code')} />
             </FormField>
-            <FormField label="Duration hours" htmlFor="durationHours" error={errors.durationHours?.message}>
+            <FormField label="Duración en horas" htmlFor="durationHours" error={errors.durationHours?.message}>
               <Input id="durationHours" type="number" min="0.5" step="0.5" {...register('durationHours')} />
             </FormField>
-            <FormField label="Name" htmlFor="name" error={errors.name?.message}>
+            <FormField label="Nombre" htmlFor="name" error={errors.name?.message}>
               <Input id="name" {...register('name')} />
             </FormField>
-            <FormField label="Modality" htmlFor="modality" error={errors.modality?.message}>
+            <FormField label="Modalidad" htmlFor="modality" error={errors.modality?.message}>
               <select
                 id="modality"
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -117,7 +117,7 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
               </select>
             </FormField>
             <div className="sm:col-span-2">
-              <FormField label="Description" htmlFor="description" error={errors.description?.message}>
+              <FormField label="Descripción" htmlFor="description" error={errors.description?.message}>
                 <Input id="description" {...register('description')} />
               </FormField>
             </div>
@@ -125,10 +125,10 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
             <div className="flex justify-end gap-2 sm:col-span-2">
               <DialogClose asChild>
                 <Button type="button" variant="outline">
-                  Cancel
+                  Cancelar
                 </Button>
               </DialogClose>
-              <Button disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save'}</Button>
+              <Button disabled={isSubmitting}>{isSubmitting ? 'Guardando...' : 'Guardar'}</Button>
             </div>
           </form>
         </DialogContent>

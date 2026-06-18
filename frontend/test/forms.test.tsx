@@ -15,12 +15,12 @@ describe('Resource forms', () => {
       </ToastProvider>,
     );
 
-    await user.click(screen.getByRole('button', { name: /add employee/i }));
-    await user.click(screen.getByRole('button', { name: /^save$/i }));
+    await user.click(screen.getByRole('button', { name: /agregar colaborador/i }));
+    await user.click(screen.getByRole('button', { name: /^guardar$/i }));
 
-    expect(await screen.findByText(/document number is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/first name is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/last name is required/i)).toBeInTheDocument();
+    expect(await screen.findByText(/el rut es obligatorio/i)).toBeInTheDocument();
+    expect(screen.getByText(/el nombre es obligatorio/i)).toBeInTheDocument();
+    expect(screen.getByText(/el apellido es obligatorio/i)).toBeInTheDocument();
   });
 
   it('shows course validation errors', async () => {
@@ -32,12 +32,12 @@ describe('Resource forms', () => {
       </ToastProvider>,
     );
 
-    await user.click(screen.getByRole('button', { name: /create course/i }));
-    await user.clear(screen.getByLabelText(/duration hours/i));
-    await user.click(screen.getByRole('button', { name: /^save$/i }));
+    await user.click(screen.getByRole('button', { name: /crear curso/i }));
+    await user.clear(screen.getByLabelText(/duración en horas/i));
+    await user.click(screen.getByRole('button', { name: /^guardar$/i }));
 
-    expect(await screen.findByText(/code is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/name is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/duration must be greater than zero/i)).toBeInTheDocument();
+    expect(await screen.findByText(/el código es obligatorio/i)).toBeInTheDocument();
+    expect(screen.getByText(/el nombre es obligatorio/i)).toBeInTheDocument();
+    expect(screen.getByText(/la duración debe ser mayor que cero/i)).toBeInTheDocument();
   });
 });

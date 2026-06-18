@@ -21,7 +21,7 @@ export function DemoModeBanner() {
     queryFn: async () => {
       const response = await fetch(getHealthUrl(), { cache: 'no-store' });
       if (!response.ok) {
-        throw new Error('Backend health check failed');
+        throw new Error('La verificación del backend falló');
       }
       return response.json() as Promise<{ status: string }>;
     },
@@ -39,7 +39,7 @@ export function DemoModeBanner() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-2 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
               <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              Demo environment active
+              Entorno demo activo
             </span>
             <span
               className={cn(
@@ -52,18 +52,18 @@ export function DemoModeBanner() {
               )}
             >
               <Activity className="h-3.5 w-3.5" aria-hidden="true" />
-              {isConnected ? 'Backend connected' : hasBackendError ? 'Backend unavailable' : 'Checking backend'}
+              {isConnected ? 'Backend conectado' : hasBackendError ? 'Backend no disponible' : 'Verificando backend'}
             </span>
           </div>
-          <p className="truncate text-sm text-muted-foreground">Demo user: {demoAccount.email}</p>
+          <p className="truncate text-sm text-muted-foreground">Usuario demo: {demoAccount.email}</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button asChild size="sm">
-            <Link href="/dashboard">Go to demo flow</Link>
+            <Link href="/dashboard">Ir al flujo demo</Link>
           </Button>
-          <Button size="sm" variant="outline" disabled title="No demo reset endpoint is available yet">
+          <Button size="sm" variant="outline" disabled title="Aún no existe un endpoint para reiniciar la demo">
             <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            Reset demo data
+            Reiniciar datos demo
           </Button>
         </div>
       </div>

@@ -18,23 +18,23 @@ export function Topbar({ onOpenMenu }: Readonly<{ onOpenMenu: () => void }>) {
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-xl">
       <div className="flex h-16 items-center gap-3 px-4 lg:px-6">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onOpenMenu} aria-label="Open navigation">
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onOpenMenu} aria-label="Abrir navegación">
           <Menu className="h-5 w-5" aria-hidden="true" />
         </Button>
         <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm text-muted-foreground md:flex">
           <Search className="h-4 w-4" aria-hidden="true" />
-          <span className="truncate">Search employees, courses, certificates...</span>
+          <span className="truncate">Buscar colaboradores, cursos, certificados...</span>
           <span className="ml-auto inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-xs">
             <Command className="h-3 w-3" aria-hidden="true" /> K
           </span>
         </div>
-        <Button variant="ghost" size="icon" aria-label="Open notifications">
+        <Button variant="ghost" size="icon" aria-label="Abrir notificaciones">
           <Bell className="h-5 w-5" aria-hidden="true" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Toggle theme"
+          aria-label="Cambiar tema"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         >
           <Sun className="h-5 w-5 dark:hidden" aria-hidden="true" />
@@ -46,14 +46,14 @@ export function Topbar({ onOpenMenu }: Readonly<{ onOpenMenu: () => void }>) {
           </Avatar>
           <div className="hidden sm:block">
             <p className="text-sm font-medium">{user ? `${user.firstName} ${user.lastName}` : 'Demo Admin'}</p>
-            <p className="text-xs text-muted-foreground">HR Operations</p>
+            <p className="text-xs text-muted-foreground">Administrador RRHH</p>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Logout"
+            aria-label="Cerrar sesión"
             onClick={() => {
-              void logout().then(() => showToast({ title: 'Signed out', description: 'Session closed safely.', tone: 'info' }));
+              void logout().then(() => showToast({ title: 'Sesión cerrada', description: 'La sesión fue cerrada correctamente.', tone: 'info' }));
             }}
           >
             <LogOut className="h-4 w-4" aria-hidden="true" />

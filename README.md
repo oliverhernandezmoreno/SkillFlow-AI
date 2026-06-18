@@ -2,6 +2,8 @@
 
 SkillFlow AI is a B2B HRTech platform for training management, annual training plans, employee records, course catalog management, compliance workflows, and future AI-assisted HR operations.
 
+The v2.1 demo experience is Spanish-first and oriented to Chile/LatAm HR, OTEC, OTIC, pilot customers, and investor walkthroughs.
+
 ## Stack
 
 - Node.js 20+
@@ -76,7 +78,11 @@ Demo credentials are non-production sample credentials:
 ```text
 Email: admin@skillflow.demo
 Password: DemoPassword123
+Name: Demo Admin
+Visible role: Administrador RRHH
 ```
+
+The seeded demo organization is `Minera Andes Capacitación` with Chilean demo collaborators, courses, one main session named `Seguridad Operacional - Junio 2026`, attendance, evaluation, certificate, and SENCE declaration data.
 
 See `docs/demo-script.md` and `docs/rbac-matrix.md` for the demo walkthrough and permission matrix.
 
@@ -147,6 +153,11 @@ Render Backend
 Supabase PostgreSQL
 ```
 
+Documented public demo URLs:
+
+- Frontend Vercel: `https://skillflow-ai.vercel.app` when configured in Vercel.
+- Backend Render: `https://tu-backend-render.onrender.com` placeholder in deployment docs; replace with the real Render service URL before sharing externally.
+
 Backend local commands:
 
 ```bash
@@ -185,6 +196,13 @@ Vercel frontend settings:
 - Root directory: `frontend`
 - Build command: `npm run build`
 - Environment variable: `NEXT_PUBLIC_API_URL=https://tu-backend-render.onrender.com/api/v1`
+
+Suggested Spanish demo flow:
+
+```text
+Ingresar -> Panel de Control -> Colaboradores -> Cursos -> Sesiones
+-> Inscripciones -> Asistencia -> Evaluaciones -> Certificados -> SENCE
+```
 
 Deployment guides:
 

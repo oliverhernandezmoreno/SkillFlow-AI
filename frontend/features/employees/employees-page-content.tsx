@@ -63,14 +63,14 @@ export function EmployeesPageContent() {
   const columns: Array<ColumnDef<Employee>> = [
     {
       accessorKey: 'firstName',
-      header: 'Name',
+      header: 'Nombre',
       cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
     },
     { accessorKey: 'areaName', header: 'Area' },
-    { accessorKey: 'positionName', header: 'Position' },
+    { accessorKey: 'positionName', header: 'Cargo' },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
@@ -85,15 +85,15 @@ export function EmployeesPageContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Employees"
-        description="Centralize workforce profiles, roles, areas and training readiness signals."
+        title="Colaboradores"
+        description="Centraliza perfiles, cargos, áreas y señales de preparación para capacitación."
         action={<EmployeeFormDialog mode="create" onSubmit={create} />}
         icon={Users}
       />
       <section className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Loaded employees" value={String(employeesQuery.data?.meta.total ?? 0)} change="From backend API" tone="indigo" icon={Users} />
-        <StatCard title="Active employees" value={String(activeEmployees)} change="Current page active records" tone="emerald" icon={BadgeCheck} />
-        <StatCard title="Profile source" value="Live" change="Authenticated tenant data" tone="cyan" icon={UserPlus} />
+        <StatCard title="Colaboradores cargados" value={String(employeesQuery.data?.meta.total ?? 0)} change="Desde la API backend" tone="indigo" icon={Users} />
+        <StatCard title="Colaboradores activos" value={String(activeEmployees)} change="Registros activos de la página" tone="emerald" icon={BadgeCheck} />
+        <StatCard title="Fuente de perfiles" value="Activa" change="Datos del tenant autenticado" tone="cyan" icon={UserPlus} />
       </section>
       <FilterBar
         searchValue={filters.search}
@@ -102,7 +102,7 @@ export function EmployeesPageContent() {
         onSearchChange={(search) => setFilters({ search, page: 1 })}
         onStatusChange={(status) => setFilters({ status, page: 1 })}
       />
-      <SectionCard title="Employees overview" description="Live employee records from the SkillFlow backend.">
+      <SectionCard title="Vista de colaboradores" description="Registros en vivo desde el backend de SkillFlow.">
         {employeesQuery.isLoading ? <LoadingSkeleton /> : null}
         {employeesQuery.isError ? <ErrorState onAction={() => void employeesQuery.refetch()} /> : null}
         {!employeesQuery.isLoading && !employeesQuery.isError && employees.length > 0 ? (
@@ -111,9 +111,9 @@ export function EmployeesPageContent() {
         {!employeesQuery.isLoading && !employeesQuery.isError && employees.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="No employees found"
-            description="Create employee profiles to start enrolling participants in training paths."
-            actionLabel="Add employee"
+            title="No se encontraron colaboradores"
+            description="Crea perfiles de colaboradores para iniciar inscripciones en rutas de capacitación."
+            actionLabel="Agregar colaborador"
           />
         ) : null}
       </SectionCard>

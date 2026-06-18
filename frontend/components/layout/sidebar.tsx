@@ -18,7 +18,7 @@ export function Sidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
         </div>
         <div>
           <p className="font-semibold tracking-normal">SkillFlow AI</p>
-          <p className="text-xs text-muted-foreground">Workforce Intelligence</p>
+          <p className="text-xs text-muted-foreground">Capacitación inteligente</p>
         </div>
       </Link>
 
