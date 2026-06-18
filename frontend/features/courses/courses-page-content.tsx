@@ -17,6 +17,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { CourseFormDialog } from '@/features/courses/course-form-dialog';
 import { useCourses, useCreateCourse, useUpdateCourse } from '@/hooks/use-courses';
 import { usePersistentFilters } from '@/hooks/use-persistent-filters';
+import { formatStatus } from '@/lib/formatters/status';
 import type { CourseFormValues } from '@/lib/validations/resources';
 import { useAuthStore } from '@/stores/auth-store';
 import type { Course } from '@/types/resources';
@@ -68,7 +69,11 @@ export function CoursesPageContent() {
   const columns: Array<ColumnDef<Course>> = [
     { accessorKey: 'code', header: 'Código' },
     { accessorKey: 'name', header: 'Nombre' },
-    { accessorKey: 'modality', header: 'Modalidad' },
+    {
+      accessorKey: 'modality',
+      header: 'Modalidad',
+      cell: ({ row }) => formatStatus(row.original.modality),
+    },
     {
       accessorKey: 'durationHours',
       header: 'Duración',

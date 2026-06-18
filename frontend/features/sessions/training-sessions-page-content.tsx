@@ -21,6 +21,7 @@ import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import { useCreateTrainingSession, usePublishTrainingSession, useTrainingSessions, useUpdateTrainingSession } from '@/hooks/use-training-sessions';
 import { useToast } from '@/components/feedback/toast-provider';
 import { TrainingSessionFormDialog } from '@/features/sessions/training-session-form-dialog';
+import { formatReference } from '@/lib/formatters/status';
 import { formatDate } from '@/lib/utils/format';
 import type { TrainingSessionFormValues } from '@/lib/validations/resources';
 import { useAuthStore } from '@/stores/auth-store';
@@ -68,7 +69,7 @@ export function TrainingSessionsPageContent() {
     const enrollmentCount = enrollmentCountBySession.get(session.id) ?? 0;
     return {
       ...session,
-      courseName: courseById.get(session.courseId) ?? 'Curso sin asignar',
+      courseName: courseById.get(session.courseId) ?? formatReference(session.courseId),
       seats: `${enrollmentCount}/${session.capacity}`,
       dateRange: `${formatDate(session.startDate)} - ${formatDate(session.endDate)}`,
     };

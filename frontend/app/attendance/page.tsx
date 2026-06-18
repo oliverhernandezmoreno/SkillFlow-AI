@@ -17,10 +17,12 @@ import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
 import { useApiErrorToast } from '@/hooks/use-api-error-toast';
 import { useAttendance, useCreateBulkAttendance } from '@/hooks/use-attendance';
+import { useEmployees } from '@/hooks/use-employees';
 import { useEnrollments } from '@/hooks/use-enrollments';
 import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import { useTrainingSessions } from '@/hooks/use-training-sessions';
 import { useToast } from '@/components/feedback/toast-provider';
+import { formatReference, formatStatus } from '@/lib/formatters/status';
 import { formatPercent } from '@/lib/utils/format';
 import { useAuthStore } from '@/stores/auth-store';
 import type { AttendanceRecord } from '@/types/resources';
@@ -47,12 +49,14 @@ function AttendancePageContent() {
   const [filters, setFilters] = usePersistentFilters('skillflow-filters-attendance', defaultFilters);
   const organizationId = useAuthStore((state) => state.user?.organizationId);
   const attendanceQuery = useAttendance({ ...filters, organizationId });
+  const employeesQuery = useEmployees({ page: 1, pageSize: 100, organizationId });
   const enrollmentsQuery = useEnrollments({ page: 1, pageSize: 100, organizationId });
   const sessionsQuery = useTrainingSessions({ page: 1, pageSize: 100, organizationId });
   const bulkAttendance = useCreateBulkAttendance();
   const { showToast } = useToast();
   const showApiError = useApiErrorToast();
   const records = attendanceQuery.data?.data ?? [];
+  const employees = employeesQuery.data?.data ?? [];
   const enrollments = enrollmentsQuery.data?.data ?? [];
   const sessions = sessionsQuery.data?.data ?? [];
   const averageAttendance =
@@ -61,6 +65,7 @@ function AttendancePageContent() {
       : 0;
   const presentRecords = records.filter((record) => record.status === 'PRESENT').length;
   const sessionById = new Map(sessions.map((session) => [session.id, session.name]));
+  const employeeById = new Map(employees.map((employee) => [employee.id, `${employee.firstName} ${employee.lastName}`]));
 
   async function markFirstSessionPresent() {
     if (!organizationId) {
@@ -94,10 +99,18 @@ function AttendancePageContent() {
     {
       accessorKey: 'trainingSessionId',
       header: 'Sesión',
-      cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? row.original.trainingSessionId,
+      cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? formatReference(row.original.trainingSessionId),
     },
-    { accessorKey: 'employeeId', header: 'Colaborador' },
-    { accessorKey: 'method', header: 'Método' },
+    {
+      accessorKey: 'employeeId',
+      header: 'Colaborador',
+      cell: ({ row }) => employeeById.get(row.original.employeeId) ?? formatReference(row.original.employeeId),
+    },
+    {
+      accessorKey: 'method',
+      header: 'Método',
+      cell: ({ row }) => formatStatus(row.original.method),
+    },
     {
       accessorKey: 'attendancePercentage',
       header: 'Porcentaje',

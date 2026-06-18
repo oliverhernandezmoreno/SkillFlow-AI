@@ -16,7 +16,7 @@ describe('Feedback components', () => {
   it('renders StatusBadge content', () => {
     render(<StatusBadge status="READY" />);
 
-    expect(screen.getByText('READY')).toBeInTheDocument();
+    expect(screen.getByText('Listo')).toBeInTheDocument();
   });
 
   it('renders EmptyState content', () => {

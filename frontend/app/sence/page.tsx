@@ -13,13 +13,19 @@ import { FilterBar } from '@/components/forms/filter-bar';
 import { AppShell } from '@/components/layout/app-shell';
 import { PageHeader } from '@/components/layout/page-header';
 import { SectionCard } from '@/components/layout/section-card';
+import { SenceEvidenceChecklist, type EvidenceChecklistItem } from '@/components/sence/sence-evidence-checklist';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { DataTable } from '@/components/tables/data-table';
 import { Button } from '@/components/ui/button';
 import { useApiErrorToast } from '@/hooks/use-api-error-toast';
+import { useAttendance } from '@/hooks/use-attendance';
+import { useCertificates } from '@/hooks/use-certificates';
+import { useEnrollments } from '@/hooks/use-enrollments';
+import { useEvaluations } from '@/hooks/use-evaluations';
 import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import { useCreateSenceDeclaration, useSenceActions, useSenceDeclarations } from '@/hooks/use-sence';
 import { useTrainingSessions } from '@/hooks/use-training-sessions';
+import { formatReference, formatStatus } from '@/lib/formatters/status';
 import { formatCurrency } from '@/lib/utils/format';
 import { useAuthStore } from '@/stores/auth-store';
 import type { SenceDeclaration } from '@/types/resources';
@@ -45,18 +51,71 @@ function SencePageContent() {
   );
   const [filters, setFilters] = usePersistentFilters('skillflow-filters-sence', defaultFilters);
   const organizationId = useAuthStore((state) => state.user?.organizationId);
+  const attendanceQuery = useAttendance({ page: 1, pageSize: 100, organizationId });
+  const certificatesQuery = useCertificates({ page: 1, pageSize: 100, organizationId });
   const declarationsQuery = useSenceDeclarations({ ...filters, organizationId });
+  const enrollmentsQuery = useEnrollments({ page: 1, pageSize: 100, organizationId });
+  const evaluationsQuery = useEvaluations({ page: 1, pageSize: 100, organizationId });
   const sessionsQuery = useTrainingSessions({ page: 1, pageSize: 100, organizationId });
   const createDeclaration = useCreateSenceDeclaration();
   const senceActions = useSenceActions();
   const { showToast } = useToast();
   const showApiError = useApiErrorToast();
+  const attendanceRecords = attendanceQuery.data?.data ?? [];
+  const certificates = certificatesQuery.data?.data ?? [];
   const declarations = declarationsQuery.data?.data ?? [];
+  const enrollments = enrollmentsQuery.data?.data ?? [];
+  const evaluations = evaluationsQuery.data?.data ?? [];
   const sessions = sessionsQuery.data?.data ?? [];
   const ready = declarations.filter((declaration) => declaration.status === 'READY').length;
   const missingEvidence = declarations.filter((declaration) => ['DRAFT', 'OBSERVED', 'REJECTED'].includes(declaration.status)).length;
   const projectedCredit = declarations.reduce((total, declaration) => total + (declaration.taxCreditAmount ?? 0), 0);
   const sessionById = new Map(sessions.map((session) => [session.id, session.name]));
+  const selectedDeclaration = declarations[0];
+  const selectedSessionId = selectedDeclaration?.trainingSessionId ?? sessions[0]?.id ?? null;
+  const selectedSessionEnrollments = enrollments.filter((enrollment) => enrollment.trainingSessionId === selectedSessionId);
+  const selectedSessionAttendance = attendanceRecords.filter((record) => record.trainingSessionId === selectedSessionId);
+  const selectedSessionEvaluations = evaluations.filter((evaluation) => evaluation.trainingSessionId === selectedSessionId);
+  const selectedSessionCertificates = certificates.filter((certificate) => certificate.trainingSessionId === selectedSessionId);
+  const declarationIsObserved = selectedDeclaration ? ['OBSERVED', 'REJECTED'].includes(selectedDeclaration.status) : false;
+  const declarationIsReady = selectedDeclaration ? ['READY', 'SUBMITTED', 'ACCEPTED'].includes(selectedDeclaration.status) : false;
+  const evidenceChecklist: EvidenceChecklistItem[] = [
+    {
+      label: 'Sesión registrada',
+      description: selectedSessionId ? (sessionById.get(selectedSessionId) ?? formatReference(selectedSessionId)) : 'No hay sesión seleccionada.',
+      status: selectedSessionId ? 'complete' : 'pending',
+    },
+    {
+      label: 'Participantes inscritos',
+      description: `${selectedSessionEnrollments.length} inscripción(es) asociadas a la sesión.`,
+      status: selectedSessionEnrollments.length > 0 ? 'complete' : 'pending',
+    },
+    {
+      label: 'Asistencia registrada',
+      description: `${selectedSessionAttendance.length} registro(s) de asistencia encontrados.`,
+      status: selectedSessionAttendance.length > 0 ? 'complete' : 'pending',
+    },
+    {
+      label: 'Evaluaciones disponibles',
+      description: `${selectedSessionEvaluations.length} evaluación(es) asociadas.`,
+      status: selectedSessionEvaluations.length > 0 ? 'complete' : 'pending',
+    },
+    {
+      label: 'Certificados emitidos',
+      description: `${selectedSessionCertificates.length} certificado(s) emitidos para la sesión.`,
+      status: selectedSessionCertificates.length > 0 ? 'complete' : 'pending',
+    },
+    {
+      label: 'Evidencia documental',
+      description: 'Documentos adjuntos y respaldos se validan antes de presentar la declaración.',
+      status: declarationIsObserved ? 'observed' : selectedSessionCertificates.length > 0 ? 'complete' : 'pending',
+    },
+    {
+      label: 'Declaración lista para revisión',
+      description: selectedDeclaration ? `Estado actual: ${formatStatus(selectedDeclaration.status)}` : 'Crea una declaración para iniciar revisión.',
+      status: declarationIsObserved ? 'observed' : declarationIsReady ? 'complete' : 'pending',
+    },
+  ];
 
   async function createFromFirstSession() {
     if (!sessions[0]) {
@@ -88,7 +147,7 @@ function SencePageContent() {
     {
       accessorKey: 'trainingSessionId',
       header: 'Sesión',
-      cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? row.original.trainingSessionId,
+      cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? formatReference(row.original.trainingSessionId),
     },
     { accessorKey: 'senceCode', header: 'Código SENCE' },
     {
@@ -142,7 +201,9 @@ function SencePageContent() {
           statusOptions={['DRAFT', 'READY', 'SUBMITTED', 'ACCEPTED', 'REJECTED', 'OBSERVED']}
           onStatusChange={(status) => setFilters({ status, page: 1 })}
         />
-        <SectionCard title="Asistente de declaraciones SENCE" description="Valida, prepara y envía declaraciones mediante acciones del backend.">
+        <SenceEvidenceChecklist items={evidenceChecklist} />
+
+        <SectionCard title="Asistente de declaraciones SENCE" description="Valida y prepara declaraciones mediante acciones del backend. No representa envío oficial automático.">
           {declarationsQuery.isLoading ? <LoadingSkeleton /> : null}
           {declarationsQuery.isError ? <ErrorState onAction={() => void declarationsQuery.refetch()} /> : null}
           {!declarationsQuery.isLoading && !declarationsQuery.isError && declarations.length > 0 ? <DataTable columns={columns} data={declarations} /> : null}

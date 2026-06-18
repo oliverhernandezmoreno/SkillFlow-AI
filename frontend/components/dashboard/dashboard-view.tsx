@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
-import { AlertTriangle, Award, BookOpen, CalendarDays, ClipboardCheck, FileCheck2, LayoutDashboard, Plus, TrendingUp, Users } from 'lucide-react';
+import { AlertTriangle, Award, BookOpen, CalendarDays, ClipboardCheck, FileCheck2, History, KeyRound, LayoutDashboard, Plus, ShieldCheck, TrendingUp } from 'lucide-react';
 
 import { MetricChart } from '@/components/charts/metric-chart';
 import { EmptyState } from '@/components/feedback/empty-state';
@@ -58,6 +58,8 @@ export function DashboardView() {
   const activeSessions = sessions.filter((session) =>
     ['SCHEDULED', 'PUBLISHED', 'IN_PROGRESS'].includes(session.status),
   );
+  const completedEnrollments = enrollments.filter((enrollment) => enrollment.status === 'COMPLETED').length;
+  const trainingCompliance = enrollments.length > 0 ? (completedEnrollments / enrollments.length) * 100 : 0;
   const evaluationsPassed = enrollments.filter((enrollment) => enrollment.approved).length;
   const averageAttendance =
     attendance.length > 0
@@ -103,15 +105,20 @@ export function DashboardView() {
     status: session.status,
   }));
   const executiveStats = [
-    { title: 'Colaboradores', value: String(dashboard.employees.data?.meta.total ?? employees.length), change: 'Cargados desde la API', tone: 'indigo' as const, icon: Users },
-    { title: 'Cursos activos', value: String(activeCourses), change: 'Catálogo disponible para planificación', tone: 'cyan' as const, icon: BookOpen },
-    { title: 'Sesiones activas', value: String(activeSessions.length), change: 'Programadas, publicadas o en curso', tone: 'indigo' as const, icon: CalendarDays },
-    { title: 'Inscripciones', value: String(dashboard.enrollments.data?.meta.total ?? enrollments.length), change: `${employees.length} colaboradores cargados`, tone: 'cyan' as const, icon: Users },
+    { title: 'Cumplimiento capacitación', value: formatPercent(trainingCompliance), change: `${completedEnrollments} inscripciones completadas`, tone: 'emerald' as const, icon: ShieldCheck },
+    { title: 'Avance PAC', value: formatPercent(pacCompliance), change: `${activeCourses} cursos activos para planificación`, tone: 'cyan' as const, icon: BookOpen },
     { title: 'Asistencia promedio', value: formatPercent(averageAttendance), change: 'Calculada desde registros de asistencia', tone: 'emerald' as const, icon: TrendingUp },
-    { title: 'Evaluaciones aprobadas', value: String(evaluationsPassed), change: `${evaluations.length} evaluaciones cargadas`, tone: 'emerald' as const, icon: ClipboardCheck },
     { title: 'Certificados emitidos', value: String(certificates.length), change: 'Registros de certificados', tone: 'indigo' as const, icon: Award },
-    { title: 'Declaraciones SENCE', value: String(senceDeclarations.length), change: `${readySence} listas, enviadas o aceptadas`, tone: 'amber' as const, icon: FileCheck2 },
-    { title: 'Alertas críticas', value: String(criticalAlerts), change: 'Pendientes, lista de espera u observadas', tone: 'rose' as const, icon: AlertTriangle },
+    { title: 'Alertas de cumplimiento', value: String(criticalAlerts), change: 'Pendientes, lista de espera u observadas', tone: 'rose' as const, icon: AlertTriangle },
+    { title: 'Estado SENCE', value: `${readySence}/${senceDeclarations.length}`, change: 'Listas, enviadas o aceptadas', tone: 'amber' as const, icon: FileCheck2 },
+    { title: 'Sesiones activas', value: String(activeSessions.length), change: 'Programadas, publicadas o en curso', tone: 'indigo' as const, icon: CalendarDays },
+    { title: 'Evaluaciones aprobadas', value: String(evaluationsPassed), change: `${evaluations.length} evaluaciones cargadas`, tone: 'emerald' as const, icon: ClipboardCheck },
+  ];
+  const trustSignals = [
+    { title: 'Control de acceso por roles', description: 'Permisos backend y sesión autenticada para operar por tenant.', icon: KeyRound },
+    { title: 'Trazabilidad de acciones', description: 'Eventos de auditoría preparados para seguimiento interno.', icon: History },
+    { title: 'Evidencias de capacitación', description: 'Asistencia, evaluaciones y certificados conectados al flujo demo.', icon: ShieldCheck },
+    { title: 'Preparado para auditorías internas', description: 'Indicadores y respaldos orientados a revisión RRHH/SENCE.', icon: FileCheck2 },
   ];
   const hasAnyData =
     employees.length +
@@ -128,7 +135,7 @@ export function DashboardView() {
     <div className="space-y-6">
       <PageHeader
         title="Panel Ejecutivo"
-        description="Centro de control en tiempo real para capacitación, cumplimiento y desarrollo organizacional."
+        description="Centro de control directivo para capacitación, cumplimiento y desarrollo organizacional. Indicadores derivados de datos operacionales conectados."
         actionLabel="Crear capacitación"
       />
 
@@ -162,8 +169,8 @@ export function DashboardView() {
 
       <section className="grid gap-6 xl:grid-cols-[1fr_0.85fr]">
         <SectionCard
-          title="Próximas sesiones"
-          description="Agenda demo con capacidad y estado de preparación."
+          title="Próximas sesiones críticas"
+          description="Agenda demo con capacidad, curso asociado y estado de preparación."
           action={
             <Button variant="outline" size="sm" asChild>
               <Link href="/training-sessions">
@@ -178,6 +185,19 @@ export function DashboardView() {
         <SectionCard title="Línea de tiempo" description="Hitos relevantes y puntos de control de cumplimiento.">
           <Timeline items={timelineItems} />
         </SectionCard>
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {trustSignals.map((signal) => {
+          const Icon = signal.icon;
+          return (
+            <div key={signal.title} className="rounded-lg border bg-card p-4">
+              <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
+              <h3 className="mt-3 text-sm font-semibold">{signal.title}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">{signal.description}</p>
+            </div>
+          );
+        })}
       </section>
     </div>
   );

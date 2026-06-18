@@ -1,6 +1,7 @@
 import { SlidersHorizontal } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { formatStatusOptions } from '@/lib/formatters/status';
 import { SearchInput } from './search-input';
 
 interface FilterBarProps {
@@ -30,11 +31,11 @@ export function FilterBar({
             aria-label="Filter by status"
           >
           <option value="">Todos los estados</option>
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
+          {formatStatusOptions(statusOptions).map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
           </select>
         ) : null}
         <Button variant="outline" className="w-full sm:w-auto">

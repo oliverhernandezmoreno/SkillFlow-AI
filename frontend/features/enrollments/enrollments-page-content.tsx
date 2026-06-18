@@ -21,6 +21,7 @@ import { useCancelEnrollment, useCreateEnrollment, useEnrollments } from '@/hook
 import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import { useTrainingSessions } from '@/hooks/use-training-sessions';
 import { useToast } from '@/components/feedback/toast-provider';
+import { formatReference } from '@/lib/formatters/status';
 import { formatDate } from '@/lib/utils/format';
 import type { EnrollmentFormValues } from '@/lib/validations/resources';
 import { useAuthStore } from '@/stores/auth-store';
@@ -67,8 +68,8 @@ export function EnrollmentsPageContent() {
   );
   const rows: EnrollmentRow[] = enrollments.map((enrollment) => ({
     ...enrollment,
-    employeeName: employeeById.get(enrollment.employeeId) ?? enrollment.employeeId,
-    sessionName: sessionById.get(enrollment.trainingSessionId) ?? enrollment.trainingSessionId,
+    employeeName: employeeById.get(enrollment.employeeId) ?? formatReference(enrollment.employeeId),
+    sessionName: sessionById.get(enrollment.trainingSessionId) ?? formatReference(enrollment.trainingSessionId),
     enrolledDate: formatDate(enrollment.enrolledAt),
   }));
   const confirmed = enrollments.filter((enrollment) => enrollment.status === 'CONFIRMED').length;

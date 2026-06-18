@@ -20,6 +20,7 @@ import { useApiErrorToast } from '@/hooks/use-api-error-toast';
 import { useCreateEvaluation, useEvaluations } from '@/hooks/use-evaluations';
 import { usePersistentFilters } from '@/hooks/use-persistent-filters';
 import { useTrainingSessions } from '@/hooks/use-training-sessions';
+import { formatReference, formatStatus } from '@/lib/formatters/status';
 import { useAuthStore } from '@/stores/auth-store';
 import type { Evaluation } from '@/types/resources';
 
@@ -83,9 +84,13 @@ function EvaluationsPageContent() {
     {
       accessorKey: 'trainingSessionId',
       header: 'Sesión',
-      cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? row.original.trainingSessionId,
+      cell: ({ row }) => sessionById.get(row.original.trainingSessionId) ?? formatReference(row.original.trainingSessionId),
     },
-    { accessorKey: 'type', header: 'Tipo' },
+    {
+      accessorKey: 'type',
+      header: 'Tipo',
+      cell: ({ row }) => formatStatus(row.original.type),
+    },
     {
       accessorKey: 'passingScore',
       header: 'Puntaje aprobación',

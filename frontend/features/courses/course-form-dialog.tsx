@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/feedback/toast-provider';
 import { getErrorMessage } from '@/lib/api/errors';
+import { formatStatus } from '@/lib/formatters/status';
 import { courseFormSchema, type CourseFormValues } from '@/lib/validations/resources';
 import type { Course } from '@/types/resources';
 
@@ -109,11 +110,11 @@ export function CourseFormDialog({ mode, course, onSubmit }: Readonly<CourseForm
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 {...register('modality')}
               >
-                <option value="PRESENTIAL">PRESENTIAL</option>
-                <option value="ONLINE">ONLINE</option>
-                <option value="HYBRID">HYBRID</option>
-                <option value="BLENDED">BLENDED</option>
-                <option value="ASYNC">ASYNC</option>
+                {(['PRESENTIAL', 'ONLINE', 'HYBRID', 'BLENDED', 'ASYNC'] as const).map((modality) => (
+                  <option key={modality} value={modality}>
+                    {formatStatus(modality)}
+                  </option>
+                ))}
               </select>
             </FormField>
             <div className="sm:col-span-2">

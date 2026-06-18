@@ -6,8 +6,8 @@ describe('DemoChecklist', () => {
   it('renders the suggested demo flow in Spanish', () => {
     render(<DemoChecklist hasBackendError={false} />);
 
-    expect(screen.getByText(/flujo demo sugerido/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /iniciar sesión/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /validar cumplimiento sence/i })).toBeInTheDocument();
+    expect(screen.getByText(/ruta sugerida/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /panel ejecutivo/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /sence/i })).toBeInTheDocument();
   });
 });
