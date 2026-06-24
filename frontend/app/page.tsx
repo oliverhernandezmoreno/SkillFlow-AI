@@ -1,6 +1,7 @@
 import { ArrowRight, Award, BookOpenCheck, FileCheck2 } from 'lucide-react';
 import Link from 'next/link';
 
+import { PublicSiteShell } from '@/components/marketing/public-site-shell';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -24,8 +25,8 @@ const benefits = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-background px-4 py-8">
-      <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl content-center gap-10">
+    <PublicSiteShell>
+      <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl content-center gap-10 px-4 py-8">
         <div className="max-w-3xl">
           <div className="mb-4 inline-flex items-center rounded-full border bg-card px-3 py-1 text-sm font-medium text-primary shadow-sm">
             SaaS HRTech para Chile y LatAm
@@ -60,6 +61,6 @@ export default function HomePage() {
           })}
         </div>
       </section>
-    </main>
+    </PublicSiteShell>
   );
 }
