@@ -38,6 +38,42 @@ export async function seedOtecCompliancePermissions(
         }),
       ),
     );
+    await transaction.$executeRaw`
+      INSERT INTO "tenant_module_entitlements" (
+        "id",
+        "organization_id",
+        "module_code",
+        "status",
+        "enabled_features",
+        "valid_from",
+        "valid_until",
+        "restriction_reason",
+        "created_at",
+        "updated_at",
+        "version"
+      )
+      VALUES (
+        gen_random_uuid(),
+        ${input.organizationId}::uuid,
+        'OTEC_COMPLIANCE'::"ModuleCode",
+        'ENABLED'::"ModuleEntitlementStatus",
+        '[]'::jsonb,
+        NOW(),
+        NULL,
+        NULL,
+        NOW(),
+        NOW(),
+        1
+      )
+      ON CONFLICT ("organization_id", "module_code") WHERE "deleted_at" IS NULL
+      DO UPDATE SET
+        "status" = 'ENABLED'::"ModuleEntitlementStatus",
+        "valid_from" = COALESCE("tenant_module_entitlements"."valid_from", NOW()),
+        "valid_until" = NULL,
+        "restriction_reason" = NULL,
+        "updated_at" = NOW(),
+        "version" = "tenant_module_entitlements"."version" + 1
+    `;
     return permissions.length;
   });
 }
