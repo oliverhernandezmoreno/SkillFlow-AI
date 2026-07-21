@@ -8,7 +8,7 @@ const summary = {
   organizationId: '00000000-0000-4000-8000-000000000001',
   adminUserId: '00000000-0000-4000-8000-000000000002',
   adminRoleId: '00000000-0000-4000-8000-000000000003',
-  permissionCount: 52,
+  permissionCount: 60,
   employeeId: '00000000-0000-4000-8000-000000000004',
   courseId: '00000000-0000-4000-8000-000000000005',
   trainingPlanId: '00000000-0000-4000-8000-000000000006',
@@ -27,7 +27,10 @@ const summary = {
 describe('System demo bootstrap endpoint controller', () => {
   it('hides the endpoint when demo bootstrap is disabled', async () => {
     const useCase = { execute: vi.fn().mockResolvedValue(summary) };
-    const controller = new SystemController(createEnvironment({ ENABLE_DEMO_BOOTSTRAP: false }), useCase);
+    const controller = new SystemController(
+      createEnvironment({ ENABLE_DEMO_BOOTSTRAP: false }),
+      useCase,
+    );
     const next = vi.fn();
 
     await invoke(controller, createRequest('expected-secret'), next);
@@ -112,7 +115,11 @@ function createResponse(): Response {
   } as unknown as Response;
 }
 
-async function invoke(controller: SystemController, request: Request, next: ReturnType<typeof vi.fn>) {
+async function invoke(
+  controller: SystemController,
+  request: Request,
+  next: ReturnType<typeof vi.fn>,
+) {
   controller.bootstrapDemo(request, createResponse(), next);
   await Promise.resolve();
 }

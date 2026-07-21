@@ -24,6 +24,7 @@ export const navigationItems = [
   { title: 'Evaluaciones', href: '/evaluations', icon: ClipboardCheck },
   { title: 'Certificados', href: '/certificates', icon: Award },
   { title: 'SENCE', href: '/sence', icon: FileCheck2 },
+  { title: 'OTEC Compliance', href: '/otec-compliance/profile', icon: ShieldCheck, permission: 'otec_compliance.read' },
   { title: 'Configuración', href: '/settings', icon: Settings },
 ] as const;
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuthStore } from '@/stores/auth-store';
-import type { ApiErrorPayload, ApiRequestOptions, TokenResponse } from '@/types/api';
+import type { ApiErrorPayload, ApiRequestOptions, ApiResponseMetadata, TokenResponse } from '@/types/api';
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
 
@@ -33,6 +33,27 @@ export async function apiRequest<TResponse>(
   }
 
   return parseResponse<TResponse>(response);
+}
+
+export async function apiRequestWithMetadata<TResponse>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<ApiResponseMetadata<TResponse>> {
+  let response = await sendRequest(path, options);
+
+  if (response.status === 401 && !options.skipAuth) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      response = await sendRequest(path, options);
+    } else {
+      useAuthStore.getState().logout();
+    }
+  }
+
+  return {
+    data: await parseResponse<TResponse>(response),
+    etag: response.headers.get('ETag'),
+  };
 }
 
 async function sendRequest(path: string, options: ApiRequestOptions): Promise<Response> {

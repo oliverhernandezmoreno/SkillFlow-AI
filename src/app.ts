@@ -17,6 +17,7 @@ export function createApp(environment: Environment = loadEnvironment()): Express
   app.use(helmet());
   app.use(
     cors({
+      exposedHeaders: ['ETag'],
       origin(origin, callback) {
         if (!origin || environment.ALLOWED_ORIGINS_LIST.includes(origin)) {
           callback(null, true);

@@ -4,7 +4,9 @@ import type { AuditLogger, AuditLogInput } from '../../application/audit-logger.
 import { prismaClient } from '../../../infrastructure/prisma/prisma-client.js';
 
 export class PrismaAuditLogger implements AuditLogger {
-  constructor(private readonly prisma: PrismaClient = prismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient | Prisma.TransactionClient = prismaClient,
+  ) {}
 
   async record(input: AuditLogInput): Promise<void> {
     const data: Prisma.AuditEventUncheckedCreateInput = {

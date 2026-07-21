@@ -5,10 +5,13 @@ import { usePathname } from 'next/navigation';
 
 import { navigationItems, workspaceSummary } from '@/lib/constants/navigation';
 import { cn } from '@/lib/utils/cn';
+import { useAuthStore } from '@/stores/auth-store';
 
 export function Sidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
   const pathname = usePathname();
   const WorkspaceIcon = workspaceSummary.icon;
+  const user = useAuthStore((state) => state.user);
+  const permissions = user?.permissions ?? [];
 
   return (
     <aside className="flex h-full flex-col gap-4 p-4">
@@ -31,7 +34,7 @@ export function Sidebar({ onNavigate }: Readonly<{ onNavigate?: () => void }>) {
       </div>
 
       <nav className="grid gap-1" aria-label="Primary navigation">
-        {navigationItems.map((item) => {
+        {navigationItems.filter((item) => !('permission' in item) || permissions.includes(item.permission)).map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           return (

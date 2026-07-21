@@ -1,0 +1,17 @@
+import { apiRequestWithMetadata } from '@/lib/api/client';
+import { officePayloadSchema, officeSchema, representativePayloadSchema, representativeSchema, type AdministrativeFilters, type OfficePayload, type Page, type RepresentativePayload } from './schemas';
+export type Versioned<T> = { record: T; etag: string | null };
+const qs = (filters: AdministrativeFilters) => new URLSearchParams(Object.entries(filters).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => [k, String(v)])).toString();
+async function page<T>(promise: Promise<{ data: unknown }>, schema: { parse(v: unknown): T }): Promise<Page<T>> { const response = await promise; const raw = response.data as Page<unknown>; return { data: raw.data.map((v) => schema.parse(v)), meta: raw.meta }; }
+async function one<T>(promise: Promise<{ data: unknown; etag: string | null }>, schema: { parse(v: unknown): T }): Promise<Versioned<T>> { const response = await promise; return { record: schema.parse(response.data), etag: response.etag }; }
+const match = (etag: string) => ({ 'If-Match': etag });
+export const listOffices = (filters: AdministrativeFilters, signal?: AbortSignal) => page(apiRequestWithMetadata(`/otec-compliance/offices?${qs(filters)}`, { signal }), officeSchema);
+export const getOffice = (id: string, signal?: AbortSignal) => one(apiRequestWithMetadata(`/otec-compliance/offices/${id}`, { signal }), officeSchema);
+export const createOffice = (otecProfileId: string, input: OfficePayload) => one(apiRequestWithMetadata('/otec-compliance/offices', { method: 'POST', body: { otecProfileId, ...officePayloadSchema.parse(input) } }), officeSchema);
+export const updateOffice = ({ id, etag, input }: { id: string; etag: string; input: Partial<OfficePayload> }) => one(apiRequestWithMetadata(`/otec-compliance/offices/${id}`, { method: 'PATCH', headers: match(etag), body: officePayloadSchema.partial().parse(input) }), officeSchema);
+export const deactivateOffice = ({ id, etag, reason }: { id: string; etag: string; reason?: string }) => one(apiRequestWithMetadata(`/otec-compliance/offices/${id}/deactivation`, { method: 'POST', headers: match(etag), body: reason ? { reason } : {} }), officeSchema);
+export const listRepresentatives = (filters: AdministrativeFilters, signal?: AbortSignal) => page(apiRequestWithMetadata(`/otec-compliance/legal-representatives?${qs(filters)}`, { signal }), representativeSchema);
+export const getRepresentative = (id: string, signal?: AbortSignal) => one(apiRequestWithMetadata(`/otec-compliance/legal-representatives/${id}`, { signal }), representativeSchema);
+export const createRepresentative = (otecProfileId: string, input: RepresentativePayload) => one(apiRequestWithMetadata('/otec-compliance/legal-representatives', { method: 'POST', body: { otecProfileId, ...representativePayloadSchema.parse(input) } }), representativeSchema);
+export const updateRepresentative = ({ id, etag, input }: { id: string; etag: string; input: Partial<RepresentativePayload> }) => one(apiRequestWithMetadata(`/otec-compliance/legal-representatives/${id}`, { method: 'PATCH', headers: match(etag), body: representativePayloadSchema.partial().parse(input) }), representativeSchema);
+export const deactivateRepresentative = ({ id, etag, reason }: { id: string; etag: string; reason?: string }) => one(apiRequestWithMetadata(`/otec-compliance/legal-representatives/${id}/deactivation`, { method: 'POST', headers: match(etag), body: reason ? { reason } : {} }), representativeSchema);

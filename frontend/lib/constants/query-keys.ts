@@ -38,4 +38,29 @@ export const queryKeys = {
     lists: () => ['sence', 'declarations'] as const,
     declarations: (filters: object) => ['sence', 'declarations', filters] as const,
   },
+  otecCompliance: {
+    profile: () => ['otec-compliance', 'profile'] as const,
+    accreditations: {
+      lists: () => ['otec-compliance', 'accreditations'] as const,
+      list: (filters: object) => ['otec-compliance', 'accreditations', filters] as const,
+      detail: (id: string) => ['otec-compliance', 'accreditations', id] as const,
+    },
+    certifications: {
+      lists: () => ['otec-compliance', 'quality-certifications'] as const,
+      list: (filters: object) => ['otec-compliance', 'quality-certifications', filters] as const,
+      detail: (id: string) => ['otec-compliance', 'quality-certifications', id] as const,
+    },
+    offices: {
+      lists: () => ['otec-compliance', 'offices'] as const,
+      list: (filters: object) => ['otec-compliance', 'offices', filters] as const,
+      detail: (id: string) => ['otec-compliance', 'offices', id] as const,
+    },
+    representatives: {
+      lists: () => ['otec-compliance', 'legal-representatives'] as const,
+      list: (filters: object) => ['otec-compliance', 'legal-representatives', filters] as const,
+      detail: (id: string) => ['otec-compliance', 'legal-representatives', id] as const,
+    },
+    resolutions: { lists: () => ['otec-compliance','resolutions'] as const, list: (filters: object) => ['otec-compliance','resolutions',filters] as const, detail: (id:string) => ['otec-compliance','resolutions',id] as const },
+    readiness: { dashboard: (profileId:string) => ['otec-compliance','readiness',profileId] as const },
+  },
 };

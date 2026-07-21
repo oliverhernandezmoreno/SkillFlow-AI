@@ -11,8 +11,22 @@ export async function login(input: { email: string; password: string }) {
     skipAuth: true,
   });
 
-  useAuthStore.getState().setSession(response);
-  return response.user;
+  const user = { ...response.user, permissions: readTokenPermissions(response.accessToken) };
+  useAuthStore.getState().setSession({ ...response, user });
+  return user;
+}
+
+export function readTokenPermissions(accessToken: string): string[] {
+  try {
+    const encodedPayload = accessToken.split('.')[1];
+    if (!encodedPayload) return [];
+    const payload = JSON.parse(atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/'))) as { permissions?: unknown };
+    return Array.isArray(payload.permissions)
+      ? payload.permissions.filter((permission): permission is string => typeof permission === 'string')
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 export async function loadCurrentUser() {

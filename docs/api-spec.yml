@@ -27,6 +27,8 @@ servers:
     description: Production
 
 tags:
+  - name: OTEC Compliance
+    description: Internal tenant-scoped OTEC compliance evidence and readiness. No official SENCE approval is asserted.
   - name: Auth
     description: Autenticación, sesión y recuperación de contraseña.
   - name: Organizations
@@ -2191,6 +2193,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuditEventListResponse'
+
+  /otec-compliance/profile:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1profile'
+  /otec-compliance/profile/deactivation:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1profile~1deactivation'
+  /otec-compliance/accreditations:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1accreditations'
+  /otec-compliance/accreditations/{id}:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1accreditations~1{id}'
+  /otec-compliance/accreditations/{id}/suspension:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1accreditations~1{id}~1suspension'
+  /otec-compliance/accreditations/{id}/revocation:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1accreditations~1{id}~1revocation'
+  /otec-compliance/quality-certifications:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1quality-certifications'
+  /otec-compliance/quality-certifications/{id}:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1quality-certifications~1{id}'
+  /otec-compliance/quality-certifications/{id}/deactivation:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1quality-certifications~1{id}~1deactivation'
+  /otec-compliance/offices:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1offices'
+  /otec-compliance/offices/{id}:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1offices~1{id}'
+  /otec-compliance/offices/{id}/deactivation:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1offices~1{id}~1deactivation'
+  /otec-compliance/legal-representatives:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1legal-representatives'
+  /otec-compliance/legal-representatives/{id}:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1legal-representatives~1{id}'
+  /otec-compliance/legal-representatives/{id}/deactivation:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1legal-representatives~1{id}~1deactivation'
+  /otec-compliance/resolutions:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1resolutions'
+  /otec-compliance/resolutions/{id}:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1resolutions~1{id}'
+  /otec-compliance/resolutions/{id}/supersession:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1resolutions~1{id}~1supersession'
+  /otec-compliance/resolutions/{id}/deactivation:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1resolutions~1{id}~1deactivation'
+  /otec-compliance/readiness/evaluations:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1readiness~1evaluations'
+  /otec-compliance/compliance-summary:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1compliance-summary'
+  /otec-compliance/expiring-items:
+    $ref: './sence/OTEC_HTTP_CONTRACTS.openapi.yml#/paths/~1otec-compliance~1expiring-items'
 
 components:
   securitySchemes:

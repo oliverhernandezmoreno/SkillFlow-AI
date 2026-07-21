@@ -2,11 +2,20 @@ export interface ApiErrorPayload {
   message?: string;
   code?: string;
   details?: unknown;
+  error?: {
+    code: string;
+    message: string;
+  };
 }
 
 export interface ApiRequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
   skipAuth?: boolean;
+}
+
+export interface ApiResponseMetadata<TResponse> {
+  data: TResponse;
+  etag: string | null;
 }
 
 export interface UserProfile {

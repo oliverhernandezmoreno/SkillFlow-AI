@@ -179,6 +179,95 @@ enum ReportSnapshotType {
   AUDIT
 }
 
+enum ModuleCode {
+  OTEC_COMPLIANCE
+}
+
+enum ModuleEntitlementStatus {
+  ENABLED
+  DISABLED
+  SUSPENDED
+  EXPIRED
+  PLAN_RESTRICTED
+}
+
+enum OtecProfileStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  CEASED
+}
+
+enum OtecAccreditationStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  REVOKED
+  CANCELLED
+}
+
+enum QualityCertificationType {
+  NCH_2728
+  ISO_9001
+  OTHER
+}
+
+enum QualityCertificationStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  REVOKED
+  CANCELLED
+}
+
+enum OtecOfficeType {
+  HEADQUARTERS
+  BRANCH
+  OPERATING_OFFICE
+  TRAINING_SITE
+  OTHER
+}
+
+enum OtecOfficeStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum OtecResolutionType {
+  ACCREDITATION
+  AUTHORIZATION
+  MODIFICATION
+  SUSPENSION
+  CESSATION
+  OTHER
+}
+
+enum OtecResolutionStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  CANCELLED
+  SUPERSEDED
+}
+
+enum RuleValidationStatus {
+  REQUIRES_FUNCTIONAL_VALIDATION
+  FUNCTIONALLY_VALIDATED
+  SUPERSEDED
+  DISABLED
+}
+
+enum UndatedRecordTreatment {
+  BLOCKING
+  WARNING
+  ACCEPTED
+}
+
 model Organization {
   id        String             @id @default(uuid()) @db.Uuid
   legalName String             @map("legal_name")
@@ -195,33 +284,41 @@ model Organization {
   deletedAt DateTime?          @map("deleted_at")
   version   Int                @default(1)
 
-  users               User[]
-  roles               Role[]
-  userRoles           UserRole[]
-  rolePermissions     RolePermission[]
-  employees           Employee[]
-  providers           Provider[]
-  instructors         Instructor[]
-  courses             Course[]
-  courseModules       CourseModule[]
-  competencies        Competency[]
-  courseCompetencies  CourseCompetency[]
-  trainingPlans       TrainingPlan[]
-  trainingPlanItems   TrainingPlanItem[]
-  trainingSessions    TrainingSession[]
-  enrollments         Enrollment[]
-  attendanceRecords   AttendanceRecord[]
-  evaluations         Evaluation[]
-  evaluationQuestions EvaluationQuestion[]
-  evaluationResponses EvaluationResponse[]
-  evaluationAnswers   EvaluationAnswer[]
-  certificates        Certificate[]
-  senceDeclarations   SenceDeclaration[]
-  senceDocuments      SenceDocument[]
-  documents           Document[]
-  notifications       Notification[]
-  reportSnapshots     ReportSnapshot[]
-  auditEvents         AuditEvent[]
+  users                User[]
+  roles                Role[]
+  userRoles            UserRole[]
+  rolePermissions      RolePermission[]
+  employees            Employee[]
+  providers            Provider[]
+  instructors          Instructor[]
+  courses              Course[]
+  courseModules        CourseModule[]
+  competencies         Competency[]
+  courseCompetencies   CourseCompetency[]
+  trainingPlans        TrainingPlan[]
+  trainingPlanItems    TrainingPlanItem[]
+  trainingSessions     TrainingSession[]
+  enrollments          Enrollment[]
+  attendanceRecords    AttendanceRecord[]
+  evaluations          Evaluation[]
+  evaluationQuestions  EvaluationQuestion[]
+  evaluationResponses  EvaluationResponse[]
+  evaluationAnswers    EvaluationAnswer[]
+  certificates         Certificate[]
+  senceDeclarations    SenceDeclaration[]
+  senceDocuments       SenceDocument[]
+  documents            Document[]
+  notifications        Notification[]
+  reportSnapshots      ReportSnapshot[]
+  auditEvents          AuditEvent[]
+  moduleEntitlements   TenantModuleEntitlement[]
+  otecProfiles         OtecProfile[]
+  otecSettings         OtecComplianceSettings[]
+  otecAccreditations   OtecAccreditation[]
+  qualityCertificates  QualityCertification[]
+  otecOffices          OtecOffice[]
+  legalRepresentatives LegalRepresentative[]
+  otecResolutions      OtecResolution[]
 
   @@index([status])
   @@index([createdAt])
@@ -1177,4 +1274,250 @@ model AuditEvent {
   @@index([organizationId, createdAt])
   @@index([organizationId, deletedAt])
   @@map("audit_events")
+}
+
+model TenantModuleEntitlement {
+  id                String                  @id @default(uuid()) @db.Uuid
+  organizationId    String                  @map("organization_id") @db.Uuid
+  moduleCode        ModuleCode              @map("module_code")
+  status            ModuleEntitlementStatus @default(DISABLED)
+  enabledFeatures   Json                    @default("[]") @map("enabled_features")
+  validFrom         DateTime?               @map("valid_from")
+  validUntil        DateTime?               @map("valid_until")
+  restrictionReason String?                 @map("restriction_reason")
+  createdAt         DateTime                @default(now()) @map("created_at")
+  updatedAt         DateTime                @updatedAt @map("updated_at")
+  deletedAt         DateTime?               @map("deleted_at")
+  version           Int                     @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, validUntil])
+  @@index([organizationId, deletedAt])
+  @@map("tenant_module_entitlements")
+}
+
+model OtecProfile {
+  id                    String            @id @default(uuid()) @db.Uuid
+  organizationId        String            @map("organization_id") @db.Uuid
+  registrationCode      String?           @map("registration_code")
+  status                OtecProfileStatus @default(ACTIVE)
+  rudoReference         String?           @map("rudo_reference")
+  accreditationDate     DateTime?         @map("accreditation_date") @db.Date
+  suspensionDate        DateTime?         @map("suspension_date") @db.Date
+  cessationDate         DateTime?         @map("cessation_date") @db.Date
+  technicalContactName  String?           @map("technical_contact_name")
+  technicalContactEmail String?           @map("technical_contact_email")
+  technicalContactPhone String?           @map("technical_contact_phone")
+  notes                 String?
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+  deletedAt             DateTime?         @map("deleted_at")
+  version               Int               @default(1)
+
+  organization        Organization             @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  settings            OtecComplianceSettings[]
+  accreditations      OtecAccreditation[]
+  qualityCertificates QualityCertification[]
+  offices             OtecOffice[]
+  representatives     LegalRepresentative[]
+  resolutions         OtecResolution[]
+
+  @@unique([id, organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, deletedAt])
+  @@map("otec_profiles")
+}
+
+model OtecComplianceSettings {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  organizationId          String                 @map("organization_id") @db.Uuid
+  otecProfileId           String                 @map("otec_profile_id") @db.Uuid
+  effectiveFrom           DateTime               @map("effective_from")
+  effectiveTo             DateTime?              @map("effective_to")
+  requireNch2728          Boolean                @default(false) @map("require_nch_2728")
+  requiredResolutionTypes Json                   @default("[]") @map("required_resolution_types")
+  qualifyingOfficeTypes   Json                   @default("[]") @map("qualifying_office_types")
+  expirationWarningDays   Json                   @default("[7,15,30,60]") @map("expiration_warning_days")
+  undatedRecordTreatment  UndatedRecordTreatment @default(WARNING) @map("undated_record_treatment")
+  sourceReference         String?                @map("source_reference")
+  sourceVersion           String?                @map("source_version")
+  validationStatus        RuleValidationStatus   @default(REQUIRES_FUNCTIONAL_VALIDATION) @map("validation_status")
+  createdAt               DateTime               @default(now()) @map("created_at")
+  updatedAt               DateTime               @updatedAt @map("updated_at")
+  deletedAt               DateTime?              @map("deleted_at")
+  version                 Int                    @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  profile      OtecProfile  @relation(fields: [otecProfileId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, effectiveFrom])
+  @@index([organizationId, deletedAt])
+  @@index([otecProfileId])
+  @@map("otec_compliance_settings")
+}
+
+model OtecAccreditation {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  organizationId      String                  @map("organization_id") @db.Uuid
+  otecProfileId       String                  @map("otec_profile_id") @db.Uuid
+  accreditationType   String                  @map("accreditation_type")
+  accreditationNumber String                  @map("accreditation_number")
+  status              OtecAccreditationStatus @default(DRAFT)
+  issuedAt            DateTime?               @map("issued_at") @db.Date
+  validFrom           DateTime?               @map("valid_from") @db.Date
+  validUntil          DateTime?               @map("valid_until") @db.Date
+  suspendedAt         DateTime?               @map("suspended_at")
+  revokedAt           DateTime?               @map("revoked_at")
+  issuingAuthority    String?                 @map("issuing_authority")
+  source              String?
+  externalReference   String?                 @map("external_reference")
+  notes               String?
+  createdAt           DateTime                @default(now()) @map("created_at")
+  updatedAt           DateTime                @updatedAt @map("updated_at")
+  deletedAt           DateTime?               @map("deleted_at")
+  version             Int                     @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  profile      OtecProfile  @relation(fields: [otecProfileId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, validUntil])
+  @@index([organizationId, deletedAt])
+  @@index([otecProfileId])
+  @@map("otec_accreditations")
+}
+
+model QualityCertification {
+  id                  String                     @id @default(uuid()) @db.Uuid
+  organizationId      String                     @map("organization_id") @db.Uuid
+  otecProfileId       String                     @map("otec_profile_id") @db.Uuid
+  certificationType   QualityCertificationType   @map("certification_type")
+  certificationNumber String                     @map("certification_number")
+  certifyingEntity    String                     @map("certifying_entity")
+  scope               String?
+  issuedAt            DateTime?                  @map("issued_at") @db.Date
+  validFrom           DateTime?                  @map("valid_from") @db.Date
+  validUntil          DateTime?                  @map("valid_until") @db.Date
+  status              QualityCertificationStatus @default(DRAFT)
+  documentId          String?                    @map("document_id") @db.Uuid
+  notes               String?
+  createdAt           DateTime                   @default(now()) @map("created_at")
+  updatedAt           DateTime                   @updatedAt @map("updated_at")
+  deletedAt           DateTime?                  @map("deleted_at")
+  version             Int                        @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  profile      OtecProfile  @relation(fields: [otecProfileId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, validUntil])
+  @@index([organizationId, deletedAt])
+  @@index([otecProfileId])
+  @@map("quality_certifications")
+}
+
+model OtecOffice {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @map("organization_id") @db.Uuid
+  otecProfileId  String           @map("otec_profile_id") @db.Uuid
+  officeCode     String           @map("office_code")
+  name           String
+  officeType     OtecOfficeType   @map("office_type")
+  status         OtecOfficeStatus @default(DRAFT)
+  street         String
+  city           String
+  commune        String
+  region         String
+  country        String           @default("CL")
+  postalCode     String?          @map("postal_code")
+  email          String?
+  phone          String?
+  validFrom      DateTime?        @map("valid_from") @db.Date
+  validUntil     DateTime?        @map("valid_until") @db.Date
+  notes          String?
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  deletedAt      DateTime?        @map("deleted_at")
+  version        Int              @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  profile      OtecProfile  @relation(fields: [otecProfileId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, validUntil])
+  @@index([organizationId, deletedAt])
+  @@index([otecProfileId])
+  @@map("otec_offices")
+}
+
+model LegalRepresentative {
+  id                    String    @id @default(uuid()) @db.Uuid
+  organizationId        String    @map("organization_id") @db.Uuid
+  otecProfileId         String    @map("otec_profile_id") @db.Uuid
+  firstName             String    @map("first_name")
+  lastName              String    @map("last_name")
+  taxId                 String    @map("tax_id")
+  email                 String?
+  phone                 String?
+  roleTitle             String    @map("role_title")
+  validFrom             DateTime? @map("valid_from") @db.Date
+  validUntil            DateTime? @map("valid_until") @db.Date
+  active                Boolean   @default(true)
+  appointmentDocumentId String?   @map("appointment_document_id") @db.Uuid
+  notes                 String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at")
+  version               Int       @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  profile      OtecProfile  @relation(fields: [otecProfileId, organizationId], references: [id, organizationId], onDelete: Restrict)
+
+  @@unique([id, organizationId])
+  @@index([organizationId, active])
+  @@index([organizationId, validUntil])
+  @@index([organizationId, deletedAt])
+  @@index([otecProfileId])
+  @@map("legal_representatives")
+}
+
+model OtecResolution {
+  id                     String               @id @default(uuid()) @db.Uuid
+  organizationId         String               @map("organization_id") @db.Uuid
+  otecProfileId          String               @map("otec_profile_id") @db.Uuid
+  resolutionType         OtecResolutionType   @map("resolution_type")
+  resolutionNumber       String               @map("resolution_number")
+  issuingAuthority       String               @map("issuing_authority")
+  issuedAt               DateTime             @map("issued_at") @db.Date
+  validFrom              DateTime?            @map("valid_from") @db.Date
+  validUntil             DateTime?            @map("valid_until") @db.Date
+  status                 OtecResolutionStatus @default(DRAFT)
+  scope                  String?
+  supersedesResolutionId String?              @map("supersedes_resolution_id") @db.Uuid
+  documentId             String?              @map("document_id") @db.Uuid
+  notes                  String?
+  createdAt              DateTime             @default(now()) @map("created_at")
+  updatedAt              DateTime             @updatedAt @map("updated_at")
+  deletedAt              DateTime?            @map("deleted_at")
+  version                Int                  @default(1)
+
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  profile              OtecProfile      @relation(fields: [otecProfileId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  supersedesResolution OtecResolution?  @relation("ResolutionSupersession", fields: [supersedesResolutionId, organizationId], references: [id, organizationId], onDelete: Restrict)
+  supersededBy         OtecResolution[] @relation("ResolutionSupersession")
+
+  @@unique([id, organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, validUntil])
+  @@index([organizationId, deletedAt])
+  @@index([otecProfileId])
+  @@index([supersedesResolutionId])
+  @@map("otec_resolutions")
 }

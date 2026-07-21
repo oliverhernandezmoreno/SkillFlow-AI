@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import { prismaClient } from '../../../infrastructure/prisma/prisma-client.js';
 import type { AuditLogger } from '../../../shared/application/audit-logger.js';
 import { PrismaAuditLogger } from '../../../shared/infrastructure/prisma/prisma-audit-logger.js';
+import { seedOtecCompliancePermissions } from '../../../modules/otec-compliance/infrastructure/prisma/seed-otec-compliance-permissions.js';
 
 const demoOrganization = {
   taxId: '76.555.444-0',
@@ -298,6 +299,11 @@ export async function bootstrapDemoData(
     ),
   );
 
+  const otecPermissionCount = await seedOtecCompliancePermissions(prisma, {
+    organizationId: organization.id,
+    roleId: adminRole.id,
+  });
+
   const employees = await Promise.all(
     demoEmployees.map((demoEmployee) =>
       prisma.employee.upsert({
@@ -501,7 +507,9 @@ export async function bootstrapDemoData(
       enrollmentId: enrollment.id,
       score: 100,
       passed: true,
-      answersPayload: [{ evaluationQuestionId: evaluationQuestion.id, answer: 'Verificar controles' }],
+      answersPayload: [
+        { evaluationQuestionId: evaluationQuestion.id, answer: 'Verificar controles' },
+      ],
     },
     create: {
       organizationId: organization.id,
@@ -510,7 +518,9 @@ export async function bootstrapDemoData(
       employeeId: employee.id,
       score: 100,
       passed: true,
-      answersPayload: [{ evaluationQuestionId: evaluationQuestion.id, answer: 'Verificar controles' }],
+      answersPayload: [
+        { evaluationQuestionId: evaluationQuestion.id, answer: 'Verificar controles' },
+      ],
     },
   });
   const evaluationAnswer = await prisma.evaluationAnswer.upsert({
@@ -585,7 +595,7 @@ export async function bootstrapDemoData(
     organizationId: organization.id,
     adminUserId: adminUser.id,
     adminRoleId: adminRole.id,
-    permissionCount: permissions.length,
+    permissionCount: permissions.length + otecPermissionCount,
     employeeId: employee.id,
     courseId: course.id,
     trainingPlanId: trainingPlan.id,
@@ -647,7 +657,12 @@ async function upsertDemoTrainingSession(
 
 async function upsertDemoAttendance(
   prisma: PrismaClient,
-  input: { organizationId: string; enrollmentId: string; trainingSessionId: string; employeeId: string },
+  input: {
+    organizationId: string;
+    enrollmentId: string;
+    trainingSessionId: string;
+    employeeId: string;
+  },
 ) {
   const data = {
     organizationId: input.organizationId,

@@ -18,6 +18,11 @@ export class ForbiddenError extends AppError {
   readonly code = 'FORBIDDEN';
 }
 
+export class ModuleUnavailableError extends AppError {
+  readonly statusCode = 403;
+  readonly code = 'MODULE_UNAVAILABLE';
+}
+
 export class TooManyRequestsError extends AppError {
   readonly statusCode = 429;
   readonly code = 'TOO_MANY_REQUESTS';
