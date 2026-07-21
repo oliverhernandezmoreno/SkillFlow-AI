@@ -13,6 +13,17 @@ import {
   Users,
 } from 'lucide-react';
 
+export const otecCompliancePermissions = [
+  'otec_compliance.read',
+  'otec_compliance.profile.manage',
+  'otec_compliance.accreditation.manage',
+  'otec_compliance.certification.manage',
+  'otec_compliance.office.manage',
+  'otec_compliance.representative.manage',
+  'otec_compliance.resolution.manage',
+  'otec_compliance.readiness.evaluate',
+] as const;
+
 export const navigationItems = [
   { title: 'Panel de Control', href: '/dashboard', icon: LayoutDashboard },
   { title: 'Colaboradores', href: '/employees', icon: Users },
@@ -24,7 +35,12 @@ export const navigationItems = [
   { title: 'Evaluaciones', href: '/evaluations', icon: ClipboardCheck },
   { title: 'Certificados', href: '/certificates', icon: Award },
   { title: 'SENCE', href: '/sence', icon: FileCheck2 },
-  { title: 'OTEC Compliance', href: '/otec-compliance/profile', icon: ShieldCheck, permission: 'otec_compliance.read' },
+  {
+    title: 'OTEC Compliance',
+    href: '/otec-compliance/profile',
+    icon: ShieldCheck,
+    requiredAnyPermissions: otecCompliancePermissions,
+  },
   { title: 'Configuración', href: '/settings', icon: Settings },
 ] as const;
 
