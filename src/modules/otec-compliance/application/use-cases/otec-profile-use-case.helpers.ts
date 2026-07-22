@@ -3,7 +3,6 @@ import { ForbiddenError, NotFoundError } from '../../../../shared/domain/errors.
 import type { OtecCompliancePermission } from '../services/otec-compliance-authorization.policy.js';
 import type { OtecProfile } from '../../domain/entities/otec-profile.entity.js';
 import type { OtecProfileRepository } from '../../domain/repositories/otec-profile.repository.js';
-import { logOtecAuthorizationDenial } from '../services/otec-authorization-diagnostic.logger.js';
 
 export function requireTenantId(context: UseCaseContext): string {
   if (!context.organizationId || !context.actorUserId) {
@@ -16,15 +15,7 @@ export function requireOtecPermission(
   context: UseCaseContext,
   permission: OtecCompliancePermission,
 ): void {
-  if (!context.permissions?.includes(permission)) {
-    logOtecAuthorizationDenial({
-      source: 'requireOtecPermission',
-      operation: 'requireOtecPermission',
-      requiredPermission: permission,
-      context,
-    });
-    throw new ForbiddenError('Permission denied');
-  }
+  if (!context.permissions?.includes(permission)) throw new ForbiddenError('Permission denied');
 }
 
 export async function findTenantProfileOrThrow(

@@ -1,7 +1,6 @@
 import type { UseCaseContext } from '../../../../shared/application/use-case-context.js';
 import { ForbiddenError, ModuleUnavailableError } from '../../../../shared/domain/errors.js';
 import type { ModuleAccessDecision } from '../../domain/entities/module-entitlement.entity.js';
-import { logOtecAuthorizationDenial } from './otec-authorization-diagnostic.logger.js';
 
 export const otecCompliancePermissions = {
   read: 'otec_compliance.read',
@@ -52,12 +51,6 @@ export class OtecComplianceAuthorizationPolicy {
       );
     }
     if (!context.permissions?.includes(requirement.permission)) {
-      logOtecAuthorizationDenial({
-        source: 'OtecComplianceAuthorizationPolicy.authorize',
-        operation: `authorize:${requirement.feature}`,
-        requiredPermission: requirement.permission,
-        context,
-      });
       throw new ForbiddenError('Permission denied');
     }
     return context.organizationId;

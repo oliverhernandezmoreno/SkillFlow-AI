@@ -16,6 +16,13 @@ export async function seedOtecCompliancePermissions(
   input: { organizationId: string; roleId: string },
 ): Promise<number> {
   return prisma.$transaction(async (transaction) => {
+    const eligibleOrganization = await transaction.organization.updateMany({
+      where: { id: input.organizationId, deletedAt: null },
+      data: { type: 'OTEC' },
+    });
+    if (eligibleOrganization.count !== 1) {
+      throw new Error('The OTEC Compliance organization was not found.');
+    }
     const permissions = await Promise.all(
       otecCompliancePermissionCodes.map((code) =>
         transaction.permission.upsert({
