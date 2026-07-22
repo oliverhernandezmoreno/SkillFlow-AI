@@ -123,6 +123,17 @@
 
 ## 8. HTTP Validation, RBAC, and Routes (TDD)
 
+- [x] 8.10 Add temporary structured diagnostics for route-level permission decisions
+  - [x] 8.10.1 Add a safe `AUTH_PERMISSION_DIAGNOSTIC` event through the existing request logger without tokens, headers, secrets, or unnecessary PII
+  - [x] 8.10.2 Verify a real JWT with profile management reaches profile creation and retain the existing negative authorization regression without adding another negative test
+  - [x] 8.10.3 Run focused HTTP/auth tests, build, lint, OpenSpec validation, and diff checks; document Render lookup and removal instructions
+
+- [x] 8.9 Verify access-token permission propagation through the OTEC HTTP boundary
+  - [x] 8.9.1 Inspect JWT verification, `response.locals.auth` assignments, middleware order, controller mapping, and GET/POST context construction
+  - [x] 8.9.2 Add focused regression tests for real JWT verification, authentication locals, application context preservation, allowed/forbidden profile POST, shared GET/POST identity, and downstream middleware stability
+  - [x] 8.9.3 Confirm the production propagation fix already present at `auth-request-context.ts` is sufficient and make no unrelated production change
+  - [x] 8.9.4 Run focused auth/context/OTEC HTTP tests, full regression, build, lint, Prisma, OpenSpec, and diff gates and publish a verification report
+
 - [x] 8.8 Correct tenant-scoped permission claims at login (TDD)
   - [x] 8.8.1 RED: Add repository and login tests for organization isolation, all authorization soft-delete boundaries, duplicate removal, argument forwarding, JWT OTEC claims, and refresh compatibility
   - [x] 8.8.2 RED: Add OTEC authorization regressions proving profile management remains forbidden without `otec_compliance.profile.manage` and proceeds with it
