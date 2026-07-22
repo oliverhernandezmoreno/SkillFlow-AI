@@ -13,6 +13,11 @@ The current OTEC profile SHALL be treated as a tenant-scoped singleton defined a
 - **WHEN** an organization whose type is not `OTEC` attempts to create an OTEC profile
 - **THEN** the system rejects the operation without creating data
 
+#### Scenario: Demo tenant receives OTEC Compliance access
+- **WHEN** the idempotent demo-access bootstrap enables OTEC Compliance and grants its permissions to the demo administrator
+- **THEN** the same demo organization is configured as active organization type `OTEC`
+- **AND** profile creation does not fail the OTEC organization eligibility rule
+
 #### Scenario: Duplicate active profile
 - **WHEN** a tenant with an active OTEC profile attempts to create another active profile
 - **THEN** the system rejects the operation as a conflict

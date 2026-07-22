@@ -123,6 +123,12 @@
 
 ## 8. HTTP Validation, RBAC, and Routes (TDD)
 
+- [x] 8.12 Resolve demo profile creation 403 through the complete productive flow
+  - [x] 8.12.1 RED: Add a PostgreSQL HTTP integration test with the confirmed demo IDs, real permission/entitlement seed, productive router/controllers/policy/repositories, frontend-equivalent payload, and pre-handler error capture
+  - [x] 8.12.2 GREEN: Make demo-access bootstrap align the enabled tenant with the existing active OTEC organization eligibility invariant
+  - [x] 8.12.3 Remove all temporary authorization diagnostics while preserving authorization rules and public error contracts
+  - [x] 8.12.4 Verify allowed, denied, and tenant-isolated profile creation plus full tests, build/typecheck, lint, Prisma, OpenSpec, and diff gates
+
 - [x] 8.8 Correct tenant-scoped permission claims at login (TDD)
   - [x] 8.8.1 RED: Add repository and login tests for organization isolation, all authorization soft-delete boundaries, duplicate removal, argument forwarding, JWT OTEC claims, and refresh compatibility
   - [x] 8.8.2 RED: Add OTEC authorization regressions proving profile management remains forbidden without `otec_compliance.profile.manage` and proceeds with it
