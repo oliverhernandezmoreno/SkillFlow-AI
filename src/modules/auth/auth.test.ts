@@ -94,6 +94,7 @@ class FakeUserRepository implements UserRepository {
 
 class FakeAuthIdentityRepository implements AuthIdentityRepository {
   auditEvents: { email: string; success: boolean }[] = [];
+  permissionLookups: { userId: string; organizationId: string | undefined }[] = [];
   successfulLoginUserIds: string[] = [];
 
   constructor(private readonly user: User | null, private readonly permissions: string[] = []) {}
@@ -106,7 +107,11 @@ class FakeAuthIdentityRepository implements AuthIdentityRepository {
     return this.user.toPrimitives().email === email.toLowerCase() ? this.user : null;
   }
 
-  async findPermissionCodesByUserId(_userId: string): Promise<string[]> {
+  async findPermissionCodesByUserId(
+    userId: string,
+    organizationId: string,
+  ): Promise<string[]> {
+    this.permissionLookups.push({ userId, organizationId });
     return this.permissions;
   }
 
@@ -259,6 +264,37 @@ describe('Auth module', () => {
       email: 'admin@example.com',
       success: true,
     });
+    expect(authIdentityRepository.permissionLookups).toEqual([
+      { userId: user.id, organizationId: user.toPrimitives().organizationId },
+    ]);
+    expect(tokenService.verify(result.accessToken, 'access').permissions).toEqual(['users.read']);
+  });
+
+  it('includes active OTEC Compliance permissions in login and refreshed JWTs', async () => {
+    const passwordHasher = new NodePasswordHasher();
+    const user = User.create({
+      organizationId: '1b1f1c99-90a5-458d-a22a-84519a7ce6d0',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@skillflow.demo',
+      passwordHash: await passwordHasher.hash('password123'),
+    });
+    const permissions = [
+      'otec_compliance.read',
+      'otec_compliance.profile.manage',
+    ];
+    const result = await new LoginUseCase(
+      new FakeAuthIdentityRepository(user, permissions),
+      passwordHasher,
+      tokenService,
+    ).execute(
+      { email: 'admin@skillflow.demo', password: 'password123' },
+      { ipAddress: null, userAgent: null },
+    );
+
+    expect(tokenService.verify(result.accessToken, 'access').permissions).toEqual(permissions);
+    const refreshed = new RefreshTokenUseCase(tokenService).execute(result.refreshToken);
+    expect(tokenService.verify(refreshed.accessToken, 'access').permissions).toEqual(permissions);
   });
 
   it('rejects invalid login credentials', async () => {

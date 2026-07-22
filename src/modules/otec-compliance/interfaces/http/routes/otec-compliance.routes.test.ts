@@ -31,6 +31,7 @@ const allPermissions = [
   'otec_compliance.resolution.manage',
   'otec_compliance.readiness.evaluate',
 ];
+const createProfile = vi.fn();
 const getProfile = vi.fn();
 const updateProfile = vi.fn();
 const access = { evaluate: vi.fn() };
@@ -39,6 +40,7 @@ describe('OTEC Compliance productive router', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     access.evaluate.mockResolvedValue({ allowed: true, reason: 'ENABLED' });
+    createProfile.mockResolvedValue(profile(1));
     getProfile.mockResolvedValue(profile(3));
     updateProfile.mockResolvedValue(profile(4));
   });
@@ -78,6 +80,29 @@ describe('OTEC Compliance productive router', () => {
     expect(response.status).toBe(403);
     expect(response.body).toEqual({ error: { code: 'FORBIDDEN', message: 'Permission denied' } });
     expect(getProfile).not.toHaveBeenCalled();
+  });
+
+  it('keeps profile creation forbidden without profile.manage', async () => {
+    const response = await authenticated(
+      request(testApp(['otec_compliance.read']))
+        .post('/otec-compliance/profile')
+        .send({ registrationCode: 'OTEC-INTERNAL-001' }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(response.body).toEqual({ error: { code: 'FORBIDDEN', message: 'Permission denied' } });
+    expect(createProfile).not.toHaveBeenCalled();
+  });
+
+  it('allows profile creation to reach the use case with profile.manage', async () => {
+    const response = await authenticated(
+      request(testApp(['otec_compliance.profile.manage']))
+        .post('/otec-compliance/profile')
+        .send({ registrationCode: 'OTEC-INTERNAL-001' }),
+    );
+
+    expect(response.status).toBe(201);
+    expect(createProfile).toHaveBeenCalledOnce();
   });
 
   it('uses authenticated tenant context and emits a weak version ETag', async () => {
@@ -181,7 +206,7 @@ describe('OTEC Compliance productive router', () => {
 
 function testApp(permissions = allPermissions) {
   const profileController = new OtecProfileController({
-    create: { execute: vi.fn().mockResolvedValue(profile(1)) },
+    create: { execute: createProfile },
     get: { execute: getProfile },
     update: { execute: updateProfile },
     deactivate: { execute: vi.fn().mockResolvedValue(undefined) },

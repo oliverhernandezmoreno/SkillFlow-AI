@@ -31,7 +31,10 @@ export class LoginUseCase {
       throw new UnauthorizedError('Invalid credentials');
     }
 
-    const permissions = await this.authIdentityRepository.findPermissionCodesByUserId(props.id);
+    const permissions = await this.authIdentityRepository.findPermissionCodesByUserId(
+      props.id,
+      props.organizationId,
+    );
     await this.authIdentityRepository.recordSuccessfulLogin(props.id, props.organizationId);
     await this.authIdentityRepository.recordLoginAuditEvent({
       organizationId: props.organizationId,

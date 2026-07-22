@@ -101,6 +101,12 @@ Mutations invalidate narrow query keys. A 409 preserves safe draft input and pro
 
 Implementation is split into small RED/GREEN/REFACTOR slices: entitlement; value objects/entities; readiness; each repository; each use-case group; HTTP/RBAC; frontend. Repository and HTTP integration tests use a disposable PostgreSQL database. The agent records pre/post database state and restores test mutations. OpenAPI drift, migration validation, curl testing, and browser E2E are release gates when applicable tooling is available.
 
+### 13. Tenant-scoped permission claims at login
+
+Login permission resolution must use both the authenticated user identifier and that user's organization identifier. The Prisma adapter must require active `UserRole`, `RolePermission`, `Role`, and `Permission` records within the authenticated organization and return unique permission codes. JWT creation remains unchanged and receives only this tenant-scoped result.
+
+**Alternative considered:** Resolve permissions by user identifier alone. Rejected because the join records are tenant-owned and authorization claims must explicitly prove organization membership at query time.
+
 ## Risks / Trade-offs
 
 - **Regulatory interpretation becomes stale** → Store source/effective/validation metadata, keep mutable behavior configured, and require domain-owner review.
