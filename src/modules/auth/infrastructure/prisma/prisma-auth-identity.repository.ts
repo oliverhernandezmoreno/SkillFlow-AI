@@ -18,15 +18,21 @@ export class PrismaAuthIdentityRepository implements AuthIdentityRepository {
     return record ? this.toDomain(record) : null;
   }
 
-  async findPermissionCodesByUserId(userId: string): Promise<string[]> {
+  async findPermissionCodesByUserId(
+    userId: string,
+    organizationId: string,
+  ): Promise<string[]> {
     const rolePermissions = await this.prisma.rolePermission.findMany({
       where: {
+        organizationId,
         deletedAt: null,
         role: {
+          organizationId,
           deletedAt: null,
           userRoles: {
             some: {
               userId,
+              organizationId,
               deletedAt: null,
             },
           },
