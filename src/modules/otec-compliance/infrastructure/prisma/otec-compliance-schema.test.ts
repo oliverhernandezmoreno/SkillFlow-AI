@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 const schema = readFileSync('prisma/schema.prisma', 'utf8');
 const migrationPath =
   'prisma/migrations/20260716223417_add_otec_compliance_foundation/migration.sql';
+const backendCiWorkflow = readFileSync('.github/workflows/backend-ci.yml', 'utf8');
 
 describe('OTEC Compliance Prisma schema', () => {
   it.each([
@@ -34,5 +35,13 @@ describe('OTEC Compliance Prisma schema', () => {
     expect(migration).toContain('otec_offices_active_code_unique');
     expect(migration).toContain('otec_resolutions_active_number_unique');
     expect(migration).toContain('WHERE "deleted_at" IS NULL');
+  });
+
+  it('deploys migrations before database-backed tests in backend CI', () => {
+    const migrationStepIndex = backendCiWorkflow.indexOf('npm run prisma:migrate:deploy');
+    const testStepIndex = backendCiWorkflow.indexOf('npm test');
+
+    expect(migrationStepIndex).toBeGreaterThan(-1);
+    expect(testStepIndex).toBeGreaterThan(migrationStepIndex);
   });
 });

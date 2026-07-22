@@ -283,6 +283,7 @@
 ## 17. Full Quality and Security Gate
 
 - [ ] 17.1 Run backend build, lint, full tests, Prisma validation, migration validation, and applicable database E2E tests
+  - [x] 17.1.1 RED/GREEN: Prove backend CI deploys committed Prisma migrations to its fresh PostgreSQL service before database-backed tests run
 - [x] 17.2 Run frontend lint, full tests, and production build
 - [ ] 17.3 Run available coverage tooling and create a coverage report, or document that infrastructure remains unavailable
 - [ ] 17.4 Scan tracked changes for secrets, unnecessary PII, cross-tenant query gaps, mass assignment, unsafe logs, and unrelated modifications
