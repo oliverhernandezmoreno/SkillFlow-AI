@@ -123,6 +123,13 @@
 
 ## 8. HTTP Validation, RBAC, and Routes (TDD)
 
+- [x] 8.8 Correct tenant-scoped permission claims at login (TDD)
+  - [x] 8.8.1 RED: Add repository and login tests for organization isolation, all authorization soft-delete boundaries, duplicate removal, argument forwarding, JWT OTEC claims, and refresh compatibility
+  - [x] 8.8.2 RED: Add OTEC authorization regressions proving profile management remains forbidden without `otec_compliance.profile.manage` and proceeds with it
+  - [x] 8.8.3 GREEN: Change the auth repository contract and Prisma query to resolve active permissions by `userId` plus `organizationId`, then pass both values from login
+  - [x] 8.8.4 REFACTOR: Keep JWT creation and OTEC authorization policy unchanged; verify strict typing and no cross-tenant claim path
+  - [x] 8.8.5 Run focused auth, Prisma repository, OTEC authorization, full regression, typecheck/build, lint, and Prisma validation gates and publish a verification report
+
 - [x] 8.1 RED: Add validator tests for each request, filter set, mass-assigned tenant field, date range, expected version, and transition payload
   - [x] 8.1.1 Produce the case-to-exposure matrix and classify all 35 existing use cases plus the non-applicable activation candidate before DTO design
   - [x] 8.1.2 RED: Add transport contract tests for strict bodies, ISO dates, enums, pagination, filters, If-Match, ETag, response presentation, errors, and non-disclosure
