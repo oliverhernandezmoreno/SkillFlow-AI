@@ -11,6 +11,22 @@ The system SHALL expose the OTEC Compliance HTTP surface under `/api/v1/otec-com
 - **WHEN** an authenticated user lacks the endpoint's required OTEC Compliance permission
 - **THEN** the system returns HTTP 403
 
+### Requirement: Tenant-scoped JWT permissions
+
+The login flow MUST resolve permission claims by authenticated user and organization, include only permissions connected through active user-role, role-permission, role, and permission records in that organization, and remove duplicate codes before token creation.
+
+#### Scenario: Permission belongs to the authenticated organization
+- **WHEN** an active user role and role permission in the authenticated organization grant `otec_compliance.profile.manage`
+- **THEN** the access and refresh JWT claims include `otec_compliance.profile.manage`
+
+#### Scenario: Same user identifier has unrelated tenant grants
+- **WHEN** permission joins outside the authenticated organization are considered
+- **THEN** those permission codes are excluded from the JWT
+
+#### Scenario: Soft-deleted authorization join
+- **WHEN** a user role, role permission, role, or permission is soft-deleted
+- **THEN** its permission code is excluded from the JWT
+
 ### Requirement: Ordered access checks
 The system SHALL validate tenant context, module entitlement, feature access, permission, and domain rules before completing an endpoint operation.
 
