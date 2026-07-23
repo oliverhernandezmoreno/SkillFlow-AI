@@ -214,6 +214,7 @@
   - [x] 10.5.3 Add accessible current-ETag deactivation confirmations only for Office and Legal Representative
   - [x] 10.5.4 Add accessible current-ETag Resolution deactivation and dual-ETag supersession confirmations
 - [ ] 10.6 Verify responsive layout, keyboard operation, labels, loading, error, empty, forbidden, and conflict accessibility
+  - [x] 10.6.5 RED/GREEN: Preserve the authenticated application shell and responsive styling across every OTEC Compliance tab
   - [x] 10.6.1 Verify the OtecProfile slice at mobile and desktop sizes with keyboard, focus, labels, described errors, modal focus management, and live feedback
   - [x] 10.6.2 Verify Accreditation and Quality Certification at mobile and desktop sizes with keyboard, focus, labels, described errors, confirmation focus management, and live feedback
   - [x] 10.6.3 Verify Office and Legal Representative at mobile and desktop sizes with keyboard, focus, labels, described errors, confirmation focus management, and live feedback
@@ -283,6 +284,7 @@
 ## 17. Full Quality and Security Gate
 
 - [ ] 17.1 Run backend build, lint, full tests, Prisma validation, migration validation, and applicable database E2E tests
+  - [x] 17.1.1 RED/GREEN: Prove backend CI deploys committed Prisma migrations to its fresh PostgreSQL service before database-backed tests run
 - [x] 17.2 Run frontend lint, full tests, and production build
 - [ ] 17.3 Run available coverage tooling and create a coverage report, or document that infrastructure remains unavailable
 - [ ] 17.4 Scan tracked changes for secrets, unnecessary PII, cross-tenant query gaps, mass assignment, unsafe logs, and unrelated modifications

@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Apply database migrations
+        run: npm run prisma:migrate:deploy
+
       - name: Build
         run: npm run build
 

@@ -1,5 +1,12 @@
 ## ADDED Requirements
 
+### Requirement: Consistent authenticated workspace shell
+Every OTEC Compliance route SHALL render inside the same authenticated application shell, including the sidebar, top bar, responsive content width, spacing, and theme styles.
+
+#### Scenario: Navigate between OTEC Compliance sections
+- **WHEN** an authenticated user navigates from Profile to Accreditations, Quality Certifications, Offices, Legal Representatives, Resolutions, or Readiness
+- **THEN** the application shell remains visible and only the OTEC Compliance page content changes
+
 ### Requirement: Connected OTEC Compliance workspace
 The frontend SHALL provide a Settings → OTEC Compliance workspace backed by the implemented API and SHALL not use static regulatory data.
 
@@ -50,4 +57,3 @@ The frontend SHALL render disabled, suspended, expired, and plan-restricted modu
 #### Scenario: Suspended module
 - **WHEN** the entitlement service reports the module suspended
 - **THEN** the workspace displays a non-destructive suspended-module message and no data-management actions
-

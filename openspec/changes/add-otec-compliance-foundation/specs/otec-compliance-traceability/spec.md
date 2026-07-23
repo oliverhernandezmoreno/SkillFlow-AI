@@ -39,3 +39,9 @@ The change SHALL include Phase 0 documentation, RBAC matrix, implementation repo
 - **WHEN** Phase 1 is proposed as complete
 - **THEN** reviewers can trace every acceptance criterion to a specification, implementation artifact, test, and verification result
 
+### Requirement: CI database migration readiness
+The backend CI job MUST apply committed Prisma migrations to its fresh PostgreSQL service before running any database-backed test suite.
+
+#### Scenario: Pull request validation on a fresh database
+- **WHEN** GitHub Actions starts the backend test job with an empty PostgreSQL database
+- **THEN** all committed migrations are deployed before `npm test` accesses OTEC Compliance tables
