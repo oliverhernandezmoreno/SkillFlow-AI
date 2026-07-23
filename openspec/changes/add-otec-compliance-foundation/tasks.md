@@ -214,6 +214,7 @@
   - [x] 10.5.3 Add accessible current-ETag deactivation confirmations only for Office and Legal Representative
   - [x] 10.5.4 Add accessible current-ETag Resolution deactivation and dual-ETag supersession confirmations
 - [ ] 10.6 Verify responsive layout, keyboard operation, labels, loading, error, empty, forbidden, and conflict accessibility
+  - [x] 10.6.5 RED/GREEN: Preserve the authenticated application shell and responsive styling across every OTEC Compliance tab
   - [x] 10.6.1 Verify the OtecProfile slice at mobile and desktop sizes with keyboard, focus, labels, described errors, modal focus management, and live feedback
   - [x] 10.6.2 Verify Accreditation and Quality Certification at mobile and desktop sizes with keyboard, focus, labels, described errors, confirmation focus management, and live feedback
   - [x] 10.6.3 Verify Office and Legal Representative at mobile and desktop sizes with keyboard, focus, labels, described errors, confirmation focus management, and live feedback
